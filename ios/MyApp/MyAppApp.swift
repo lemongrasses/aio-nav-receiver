@@ -14,6 +14,8 @@ struct MyAppApp: App {
         WindowGroup {
             ContentView()
                 .environment(store)
+                .environment(\.uiLanguage, store.language)
+                .environment(\.locale, store.language.locale)
         }
         .onChange(of: scenePhase, initial: true) {
             // iOS suspends apps in the background; release the port and pick up again on return.

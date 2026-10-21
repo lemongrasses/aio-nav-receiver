@@ -13,8 +13,8 @@ struct StatusView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     VerdictBanner(snapshot: store.snapshot)
-                    if let error = store.listenError {
-                        ListenErrorCard(message: error)
+                    if let failure = store.listenFailure {
+                        ListenErrorCard(failure: failure)
                     }
                     NavigationCard(snapshot: store.snapshot, rateHz: store.receiveRateHz)
                     StatusPacketCard(snapshot: store.snapshot)
@@ -24,13 +24,14 @@ struct StatusView: View {
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("AIO NAV Monitor")
+            .navigationTitle("AIO NAV Receiver")
         }
     }
 }
 
 struct VerdictBanner: View {
     let snapshot: MonitorSnapshot
+    @Environment(\.uiLanguage) private var lang
 
     var body: some View {
         let usable = snapshot.verdict.isUsable
@@ -39,28 +40,24 @@ struct VerdictBanner: View {
                 Image(systemName: usable ? "checkmark.shield.fill" : "xmark.octagon.fill")
                     .font(.system(size: 40))
                     .contentTransition(.symbolEffect(.replace))
-                Text(usable ? "Usable" : "Blocked")
+                Text(verbatim: Vocabulary.word(usable: usable, lang))
                     .font(.largeTitle.bold())
                 Spacer()
                 if let status = snapshot.status {
-                    Text(verbatim: status.stateName)
-                        .font(.subheadline.monospaced().weight(.semibold))
+                    Text(verbatim: Vocabulary.stateName(status.state, lang))
+                        .font(.subheadline.weight(.semibold))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
                         .background(.white.opacity(0.22), in: Capsule())
                 }
             }
             if !usable {
-                Text(snapshot.verdict.title)
+                Text(verbatim: Vocabulary.reason(snapshot.verdict, lang))
                     .font(.title3.weight(.semibold))
-                if let detail = snapshot.verdict.detail {
-                    Text(verbatim: detail)
-                        .font(.footnote.monospaced())
-                }
             }
-            if let text = snapshot.status?.action?.operatorText {
+            if let status = snapshot.status, status.requestedAction != RequestedAction.none.rawValue {
                 Label {
-                    Text(text)
+                    Text(verbatim: Vocabulary.actionText(status.requestedAction, lang))
                 } icon: {
                     Image(systemName: "person.wave.2.fill")
                 }
@@ -78,12 +75,13 @@ struct VerdictBanner: View {
 }
 
 struct ListenErrorCard: View {
-    let message: String
+    let failure: UDPReceiver.BindError
+    @Environment(\.uiLanguage) private var lang
 
     var body: some View {
         Card(title: "Cannot listen", systemImage: "exclamationmark.triangle.fill") {
-            Text(verbatim: message)
-                .font(.callout.monospaced())
+            Text(verbatim: Vocabulary.bindError(port: failure.port, code: failure.code, lang))
+                .font(.callout)
             Text("Another app may be using this port. Change the port in Settings.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -95,15 +93,16 @@ struct ListenErrorCard: View {
 struct NavigationCard: View {
     let snapshot: MonitorSnapshot
     let rateHz: Double
+    @Environment(\.uiLanguage) private var lang
 
     var body: some View {
-        Card(title: "Navigation (0x04)", systemImage: "location.north.circle") {
+        Card(title: "Navigation 0x04", systemImage: "location.north.circle") {
             if let n = snapshot.nav {
                 InfoRow("Latitude", Format.number(n.latitude, 8, unit: "°"))
                 InfoRow("Longitude", Format.number(n.longitude, 8, unit: "°"))
                 InfoRow("Height", Format.number(Double(n.height), 2, unit: "m"))
                 InfoRow("Heading", Format.number(n.heading360, 1, unit: "°"))
-                InfoRow("Speed", Format.number(n.groundSpeed, 2, unit: "m/s") + "  ("
+                InfoRow("Ground speed", Format.number(n.groundSpeed, 2, unit: "m/s") + "  ("
                         + Format.number(n.groundSpeed * 3.6, 1, unit: "km/h") + ")")
                 InfoRow("Roll / pitch", Format.number(Double(n.roll), 2) + " / " + Format.number(Double(n.pitch), 2, unit: "°"))
                 InfoRow("Position σ N / E / D", [n.positionNorthStd, n.positionEastStd, n.heightStd]
@@ -117,7 +116,7 @@ struct NavigationCard: View {
                     .foregroundStyle(.secondary)
                 FlowLayout {
                     ForEach([NavFlag.alignment, .headingValid, .fineAlignment], id: \.self) { flag in
-                        Chip(text: flag.name, isOn: n.has(flag))
+                        Chip(text: Vocabulary.lampName(flag, lang), isOn: n.has(flag))
                     }
                 }
                 Text("Aiding this epoch")
@@ -138,35 +137,37 @@ struct NavigationCard: View {
 
 struct StatusPacketCard: View {
     let snapshot: MonitorSnapshot
+    @Environment(\.uiLanguage) private var lang
 
     var body: some View {
-        Card(title: "Dashboard status (0x05)", systemImage: "list.bullet.rectangle") {
+        Card(title: "Status 0x05", systemImage: "list.bullet.rectangle") {
             if let s = snapshot.status {
-                InfoRow("State", s.stateName)
-                InfoRow("Requested action", s.actionName)
-                InfoRow("GNSS quality", s.gnssQualityName)
+                InfoRow("State", Vocabulary.stateName(s.state, lang))
+                InfoRow("Requested action", Vocabulary.actionText(s.requestedAction, lang))
+                InfoRow("GNSS quality", Vocabulary.gnssQualityName(s.gnssQuality, lang))
                 InfoRow("Session", String(format: "0x%08X", s.sessionID))
                 InfoRow("Sequence", "\(s.sequence)")
                 InfoRow("Dashboard uptime", Format.duration(Double(s.uptimeMs) / 1000))
-                InfoRow("Nav rate (dashboard)", Format.number(s.navRateHz, 1, unit: "Hz"))
-                InfoRow("Nav age (dashboard)", s.navAgeMs == 0xFFFF ? "—" : "\(s.navAgeMs) ms")
+                InfoRow("Navigation rate", Format.number(s.navRateHz, 1, unit: "Hz"))
+                InfoRow("0x04 age", s.navAgeMs == 0xFFFF ? "—" : "\(s.navAgeMs) ms")
                 InfoRow("Status age", snapshot.statusAge.map { Format.number($0, 1, unit: "s") } ?? "—")
                 Divider()
-                Text("Inhibit")
+                Text("Blocking conditions")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                if s.inhibitNames.isEmpty {
-                    Text(verbatim: "—")
+                let inhibit = Vocabulary.inhibitNames(s.inhibitFlags, lang)
+                if inhibit.isEmpty {
+                    Text(verbatim: Vocabulary.t("none", lang))
                 } else {
                     FlowLayout {
-                        ForEach(s.inhibitNames, id: \.self) { Chip(text: $0, tint: .red) }
+                        ForEach(inhibit, id: \.self) { Chip(text: $0, tint: .red) }
                     }
                 }
-                Text("Health")
+                Text("Conditions met")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 FlowLayout {
-                    ForEach(s.healthNames, id: \.self) { Chip(text: $0) }
+                    ForEach(Vocabulary.healthNames(s.healthFlags, lang), id: \.self) { Chip(text: $0) }
                 }
             } else {
                 Text("No valid 0x05 status packet.")
@@ -188,8 +189,8 @@ struct StatisticsCard: View {
             InfoRow("Out of order", "\(counts.gate.reordered)")
             InfoRow("Two senders", "\(counts.gate.twoSenders)")
             InfoRow("Invalid", "\(counts.gate.bad)")
-            InfoRow("Other sources", "\(counts.otherSource)")
-            InfoRow("Time usable", Format.duration(usableSeconds))
+            InfoRow("Other senders", "\(counts.otherSource)")
+            InfoRow("Usable total", Format.duration(usableSeconds))
         }
     }
 }

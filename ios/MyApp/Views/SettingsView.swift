@@ -61,7 +61,7 @@ struct SettingsView: View {
                                 .monospacedDigit()
                         }
                     }
-                    LabeledContent("Accept only source IP") {
+                    LabeledContent("Accept only from IP") {
                         TextField("Any", text: $draft.allowedSourceIP)
                             .keyboardType(.numbersAndPunctuation)
                             .textInputAutocapitalization(.never)
@@ -71,21 +71,36 @@ struct SettingsView: View {
                 } header: {
                     Text("Receiving")
                 } footer: {
-                    Text("UDP has no authentication: anyone who can reach this port can fake READY. Enter the device's IP so packets from other sources are only counted.")
+                    Text("UDP has no authentication: anyone who can reach this port can fake the ready status. Enter the device's IP so packets from other senders are only counted.")
                 }
 
                 Section {
                     secondsStepper("Status timeout", value: $draft.statusTimeout, range: 0.5...30, step: 0.5)
-                    secondsStepper("READY stable time", value: $draft.readyStable, range: 0...30, step: 0.5)
-                    secondsStepper("Max navigation age", value: $draft.navMaxAge, range: 0.1...5, step: 0.1)
+                    secondsStepper("Ready hold time", value: $draft.readyStable, range: 0...30, step: 0.5)
+                    secondsStepper("Navigation max age", value: $draft.navMaxAge, range: 0.1...5, step: 0.1)
                 } header: {
                     Text("Rules")
                 } footer: {
-                    Text("Defaults are 3.0 s, 2.0 s and 0.5 s, the same as web_monitor's VehicleGate. Do not loosen them for real use.")
+                    Text("Defaults are 3.0 s, 2.0 s and 0.5 s, the same as the desktop app. Do not loosen them for real use.")
                 }
 
                 Section {
+                    // Applies at once, like the desktop; listening carries on.
+                    Picker("Language", selection: Binding(
+                        get: { store.settings.language ?? "" },
+                        set: { code in
+                            draft.language = code.isEmpty ? nil : code
+                            store.setLanguage(draft.language)
+                        })) {
+                        Text("Follow system").tag("")
+                        ForEach(UILanguage.allCases, id: \.rawValue) { lang in
+                            Text(verbatim: lang.nativeName).tag(lang.rawValue)
+                        }
+                    }
                     Toggle("Keep screen on", isOn: $draft.keepScreenOn)
+                    LabeledContent("Version") {
+                        Text(verbatim: Self.version)
+                    }
                 } header: {
                     Text("Display")
                 } footer: {
@@ -117,6 +132,13 @@ struct SettingsView: View {
             }
         }
     }
+
+    static let version: String = {
+        let info = Bundle.main.infoDictionary ?? [:]
+        let short = info["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info["CFBundleVersion"] as? String ?? "?"
+        return "\(short) (\(build))"
+    }()
 
     private var isValid: Bool {
         guard draft.navPort > 0, draft.statusPort.map({ $0 > 0 }) ?? true else { return false }

@@ -14,10 +14,10 @@ import Synchronization
 nonisolated final class UDPReceiver: Sendable {
     typealias Handler = @Sendable (_ bytes: [UInt8], _ sender: String, _ arrival: Double) -> Void
 
-    struct BindError: LocalizedError {
+    /// A port that could not be opened; `code` is the errno. Vocabulary.bindError words it.
+    struct BindError: Error, Equatable {
         let port: UInt16
-        let reason: String
-        var errorDescription: String? { "UDP \(port): \(reason)" }
+        let code: Int32
     }
 
     private let sockets: [Int32]
@@ -71,7 +71,7 @@ nonisolated final class UDPReceiver: Sendable {
 
     private static func bind(port: UInt16) throws -> Int32 {
         let fd = socket(AF_INET, SOCK_DGRAM, Int32(IPPROTO_UDP))
-        guard fd >= 0 else { throw BindError(port: port, reason: String(cString: strerror(errno))) }
+        guard fd >= 0 else { throw BindError(port: port, code: errno) }
         var on: Int32 = 1
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, socklen_t(MemoryLayout<Int32>.size))
         var bufferSize: Int32 = 1 << 20
@@ -88,9 +88,9 @@ nonisolated final class UDPReceiver: Sendable {
             }
         }
         guard result == 0 else {
-            let reason = String(cString: strerror(errno))
+            let code = errno
             close(fd)
-            throw BindError(port: port, reason: reason)
+            throw BindError(port: port, code: code)
         }
         return fd
     }

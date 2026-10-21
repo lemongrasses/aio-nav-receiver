@@ -181,19 +181,6 @@ nonisolated enum RequestedAction: UInt8, CaseIterable, Sendable {
                         "MAINTENANCE_HOLD"]
 
     var name: String { Self.names[Int(rawValue)] }
-
-    /// What the operator should do (readiness.ACTION_TEXT); nil for NONE.
-    var operatorText: LocalizedStringResource? {
-        switch self {
-        case .none: nil
-        case .holdStill: "Keep the vehicle completely still."
-        case .driveStraight: "Drive straight at a steady speed in a safe, open area."
-        case .keepDriving: "Keep driving normally with GNSS available."
-        case .safeStop: "Stop using navigation and follow the vehicle's safety procedure."
-        case .serviceRequired: "Maintenance is needed."
-        case .maintenanceHold: "Stopped. Press Start to resume."
-        }
-    }
 }
 
 nonisolated enum StatusBits {

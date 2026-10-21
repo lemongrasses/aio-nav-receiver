@@ -5,27 +5,10 @@
 
 import SwiftUI
 
-extension VehicleGate.Verdict {
-    /// Reason shown when blocked, in the order the rules are checked.
-    var title: LocalizedStringResource {
-        switch self {
-        case .usable: "Usable"
-        case .noStatus: "No current status packet"
-        case .notReady: "Status not READY"
-        case .readyNotStable: "READY not yet stable"
-        case .navTooOld: "Navigation data too old"
-        case .navTimeBackwards: "Navigation time did not move forward"
-        case .notAligned: "Navigation flags not aligned"
-        case .notFinite: "Navigation data not finite"
-        }
-    }
-
-    /// For "not READY": the state and the inhibit bit names.
-    var detail: String? {
-        guard case let .notReady(state, inhibit) = self else { return nil }
-        let names = AIO.names(of: inhibit, in: StatusBits.inhibit)
-        return DashboardState.name(of: state) + " · inhibit " + (names.isEmpty ? "0" : names.joined(separator: ", "))
-    }
+extension EnvironmentValues {
+    /// The one language the app shows (Settings → Display → Language). Text with a localized
+    /// key follows `locale`, which the app sets to match; code-built text uses this.
+    @Entry var uiLanguage: UILanguage = .en
 }
 
 enum Format {
@@ -88,7 +71,7 @@ struct Chip: View {
 
     var body: some View {
         Text(verbatim: text)
-            .font(.caption.monospaced().weight(.semibold))
+            .font(.caption.weight(.semibold))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .foregroundStyle(isOn ? .white : .secondary)

@@ -2,6 +2,16 @@
   "sourceLanguage": "en",
   "version": "1.0",
   "strings": {
+    "0x04 age": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0x04 年齡"
+          }
+        }
+      }
+    },
     "0x04 data age": {
       "localizations": {
         "zh-Hant": {
@@ -37,7 +47,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "0x05 message ID"
+            "value": "0x05 訊息 ID"
           }
         }
       }
@@ -92,17 +102,17 @@
         }
       }
     },
-    "AIO NAV Monitor": {
+    "AIO NAV Receiver": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "AIO NAV 監控"
+            "value": "AIO NAV 接收監看"
           }
         }
       }
     },
-    "Accept only source IP": {
+    "Accept only from IP": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
@@ -117,7 +127,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "本 epoch 輔助"
+            "value": "本次輔助更新"
           }
         }
       }
@@ -162,12 +172,12 @@
         }
       }
     },
-    "Blocked": {
+    "Blocking conditions": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "阻擋"
+            "value": "阻擋條件"
           }
         }
       }
@@ -212,12 +222,12 @@
         }
       }
     },
-    "Dashboard status (0x05)": {
+    "Conditions met": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dashboard 狀態（0x05）"
+            "value": "成立條件"
           }
         }
       }
@@ -242,12 +252,12 @@
         }
       }
     },
-    "Defaults are 3.0 s, 2.0 s and 0.5 s, the same as web_monitor's VehicleGate. Do not loosen them for real use.": {
+    "Defaults are 3.0 s, 2.0 s and 0.5 s, the same as the desktop app. Do not loosen them for real use.": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "預設為 3.0 秒、2.0 秒與 0.5 秒，與 web_monitor 的 VehicleGate 相同；實際使用時不可放寬。"
+            "value": "預設為 3.0 秒、2.0 秒與 0.5 秒，與桌面版相同；實際使用時不可放寬。"
           }
         }
       }
@@ -262,22 +272,22 @@
         }
       }
     },
-    "Drive straight at a steady speed in a safe, open area.": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在安全空曠處等速直線行駛。"
-          }
-        }
-      }
-    },
     "End": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "結束"
+          }
+        }
+      }
+    },
+    "Follow system": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟隨系統"
           }
         }
       }
@@ -302,12 +312,12 @@
         }
       }
     },
-    "Gate": {
+    "Ground speed": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "判斷"
+            "value": "水平速度"
           }
         }
       }
@@ -332,16 +342,6 @@
         }
       }
     },
-    "Health": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Health"
-          }
-        }
-      }
-    },
     "Height": {
       "localizations": {
         "zh-Hant": {
@@ -362,32 +362,12 @@
         }
       }
     },
-    "Inhibit": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inhibit"
-          }
-        }
-      }
-    },
     "Invalid": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "無效"
-          }
-        }
-      }
-    },
-    "Keep driving normally with GNSS available.": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在有 GNSS 的地方繼續正常行駛。"
           }
         }
       }
@@ -402,22 +382,22 @@
         }
       }
     },
-    "Keep the vehicle completely still.": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "車輛保持完全靜止。"
-          }
-        }
-      }
-    },
     "Lane": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "列"
+          }
+        }
+      }
+    },
+    "Language": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "語言"
           }
         }
       }
@@ -482,26 +462,6 @@
         }
       }
     },
-    "Maintenance is needed.": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "需要維護。"
-          }
-        }
-      }
-    },
-    "Max navigation age": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "導航最大年齡"
-          }
-        }
-      }
-    },
     "Motion": {
       "localizations": {
         "zh-Hant": {
@@ -512,62 +472,22 @@
         }
       }
     },
-    "Nav age (dashboard)": {
+    "Navigation 0x04": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "導航年齡（dashboard）"
+            "value": "導航 0x04"
           }
         }
       }
     },
-    "Nav rate (dashboard)": {
+    "Navigation max age": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "導航頻率（dashboard）"
-          }
-        }
-      }
-    },
-    "Navigation (0x04)": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "導航（0x04）"
-          }
-        }
-      }
-    },
-    "Navigation data not finite": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "導航資料不是有限值"
-          }
-        }
-      }
-    },
-    "Navigation data too old": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "導航資料太舊"
-          }
-        }
-      }
-    },
-    "Navigation flags not aligned": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "導航旗標未對準"
+            "value": "導航最大年齡"
           }
         }
       }
@@ -582,12 +502,12 @@
         }
       }
     },
-    "Navigation time did not move forward": {
+    "Navigation rate": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "導航時間沒有往前"
+            "value": "導航頻率"
           }
         }
       }
@@ -618,16 +538,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "沒有目前位置。"
-          }
-        }
-      }
-    },
-    "No current status packet": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有最新的狀態封包"
           }
         }
       }
@@ -672,7 +582,7 @@
         }
       }
     },
-    "Other sources": {
+    "Other senders": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
@@ -712,22 +622,12 @@
         }
       }
     },
-    "READY not yet stable": {
+    "Ready hold time": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "READY 尚未穩定"
-          }
-        }
-      }
-    },
-    "READY stable time": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "READY 穩定時間"
+            "value": "就緒穩定時間"
           }
         }
       }
@@ -777,7 +677,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Roll / pitch"
+            "value": "橫滾 / 俯仰"
           }
         }
       }
@@ -817,7 +717,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sequence"
+            "value": "序號"
           }
         }
       }
@@ -837,7 +737,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session"
+            "value": "工作階段"
           }
         }
       }
@@ -902,22 +802,22 @@
         }
       }
     },
+    "Status 0x05": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "狀態 0x05"
+          }
+        }
+      }
+    },
     "Status age": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "狀態年齡"
-          }
-        }
-      }
-    },
-    "Status not READY": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態不是 READY"
           }
         }
       }
@@ -942,26 +842,6 @@
         }
       }
     },
-    "Stop using navigation and follow the vehicle's safety procedure.": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "停止使用導航，依車輛安全程序處理。"
-          }
-        }
-      }
-    },
-    "Stopped. Press Start to resume.": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已停止，按「恢復」後繼續。"
-          }
-        }
-      }
-    },
     "This iPhone": {
       "localizations": {
         "zh-Hant": {
@@ -978,16 +858,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "時間"
-          }
-        }
-      }
-    },
-    "Time usable": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累計可用時間"
           }
         }
       }
@@ -1012,22 +882,22 @@
         }
       }
     },
-    "UDP has no authentication: anyone who can reach this port can fake READY. Enter the device's IP so packets from other sources are only counted.": {
+    "UDP has no authentication: anyone who can reach this port can fake the ready status. Enter the device's IP so packets from other senders are only counted.": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "UDP 沒有驗證，任何能送到這個埠的人都能偽造 READY。請填入裝置的 IP，其他來源的封包只計數、不處理。"
+            "value": "UDP 沒有驗證，任何能送到這個埠的人都能偽造就緒狀態。請填入裝置的 IP，其他來源的封包只計數、不處理。"
           }
         }
       }
     },
-    "Usable": {
+    "Usable total": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "可用"
+            "value": "累計可用"
           }
         }
       }
@@ -1042,12 +912,12 @@
         }
       }
     },
-    "Vehicle": {
+    "Version": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "車輛"
+            "value": "版本"
           }
         }
       }

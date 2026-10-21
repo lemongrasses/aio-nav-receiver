@@ -60,7 +60,7 @@ final class MonitorStore {
     private(set) var receiveRateHz = 0.0
     private(set) var usableSeconds = 0.0
     private(set) var isListening = false
-    private(set) var listenError: String?
+    private(set) var listenFailure: UDPReceiver.BindError?
     private(set) var localAddresses: [LocalAddress] = []
     private(set) var timeline: [TimelineSegment] = []
     private(set) var navSamples: [NavSample] = []
@@ -86,10 +86,10 @@ final class MonitorStore {
         do {
             receiver = try UDPReceiver(ports: settings.ports, handler: Self.handler(for: engine))
             isListening = true
-            listenError = nil
+            listenFailure = nil
         } catch {
             isListening = false
-            listenError = error.localizedDescription
+            listenFailure = error as? UDPReceiver.BindError ?? UDPReceiver.BindError(port: settings.navPort, code: EIO)
         }
         refreshLocalAddresses()
         tickTask = Task { [weak self] in
@@ -122,6 +122,16 @@ final class MonitorStore {
         } else {
             updateIdleTimer()
         }
+    }
+
+    /// The language shown now: the setting, or the iPhone's language.
+    var language: UILanguage { UILanguage.resolve(settings.language) }
+
+    /// Switches the language at once; listening carries on.
+    func setLanguage(_ code: String?) {
+        var new = settings
+        new.language = code
+        apply(new)
     }
 
     /// Starts over with a fresh gate, statistics and history.
