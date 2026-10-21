@@ -15,14 +15,14 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-from . import __version__, config, osutil
+from . import __version__, config, i18n, osutil
 
 log = logging.getLogger(__name__)
 SPEEDS = ("1", "2", "5", "10")
 
 
 def _parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(prog="aio-receiver", description="AIO NAV 接收監看")
+    ap = argparse.ArgumentParser(prog="aio-receiver", description="AIO NAV receiver")
     ap.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     ap.add_argument("--replay", type=Path, metavar="FILE", help="open this .bin recording instead of listening")
     ap.add_argument("--speed", choices=SPEEDS, default="1", help="replay speed")
@@ -53,8 +53,8 @@ def _check(path: Path, as_json: bool, settings: config.Settings) -> int:
                   sys.stdout, ensure_ascii=False, indent=1)
         print()
         return 0
-    print(f"{path.name}: {rep.packets} 包, {rep.duration:.1f} s, 累計可用 {rep.usable_total:.1f} s")
-    print("  ".join(f"{k} {v}" for k, v in vars(rep.count).items()))
+    print(i18n.t("cli.summary", name=path.name, n=rep.packets, d=rep.duration, u=rep.usable_total))
+    print(i18n.t("cli.counts", **vars(rep.count)))
     for tr in rep.transitions:
         print(f"{tr.t - rep.t0:10.3f}  {tr.verdict.word}  {tr.verdict.text}")
     return 0
@@ -66,7 +66,7 @@ def _export(path: Path, out: Optional[Path]) -> int:
     out = out or path.with_name(path.stem + "_nav.csv")
     with Recording(path) as rec:
         rows = export_csv(rec, out)
-    print(f"{rows} 列 → {out}")
+    print(i18n.t("cli.exported", rows=rows, out=out))
     return 0
 
 
@@ -77,6 +77,9 @@ def main(argv: Optional[List[str]] = None) -> None:
     args = _parser().parse_args(argv)
     log_path = osutil.setup_logging(args.verbose)
     settings, problems = config.load()
+    i18n.set_language(settings.language)
+    if problems:                        # say what was wrong in the language just chosen
+        settings, problems = config.load()
     log.info("aio-receiver %s on %s, log %s", __version__, sys.platform, log_path)
     try:
         if args.command == "check":

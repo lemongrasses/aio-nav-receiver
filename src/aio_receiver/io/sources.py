@@ -12,6 +12,7 @@ import socket
 import time
 from typing import List, NamedTuple, Optional, Sequence, Tuple
 
+from ..i18n import Msg, msg, os_error
 from .recording import Record, Recording
 
 RCVBUF = 1 << 20
@@ -36,7 +37,7 @@ class UdpSource:
     def __init__(self, host: str, ports: Sequence[int]) -> None:
         self.host = host
         self.ports = sorted(set(ports))
-        self.errors: List[str] = []
+        self.errors: List[Msg] = []
         self.socks: List[socket.socket] = []
         for port in self.ports:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -48,13 +49,18 @@ class UdpSource:
                 s.setblocking(False)
             except OSError as e:
                 s.close()
-                self.errors.append(f"無法綁定 {host}:{port}：{e.strerror or e}")
+                self.errors.append(msg("fail.bind", addr=f"{host}:{port}", error=os_error(e)))
                 continue
             self.socks.append(s)
 
     @property
+    def address(self) -> str:
+        return f"{self.host}:" + "/".join(str(p) for p in self.ports)
+
+    @property
     def label(self) -> str:
-        return f"監聽 {self.host}:" + "/".join(str(p) for p in self.ports)
+        """For the application log and the recording header (not shown on screen)."""
+        return f"listen {self.address}"
 
     @staticmethod
     def clock() -> float:
@@ -96,12 +102,16 @@ class ReplaySource:
         self.rec = rec
         self.pos = 0
         self.speed = speed
-        self.errors: List[str] = []
+        self.errors: List[Msg] = []
         self._anchor_real, self._anchor_virt = time.perf_counter(), rec.t0
 
     @property
+    def address(self) -> str:
+        return self.rec.path.name
+
+    @property
     def label(self) -> str:
-        return f"重播 {self.rec.path.name}"
+        return f"replay {self.rec.path.name}"
 
     def clock(self) -> float:
         return min(self._anchor_virt + (time.perf_counter() - self._anchor_real) * self.speed, self.rec.t_end)

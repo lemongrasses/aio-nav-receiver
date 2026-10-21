@@ -120,7 +120,7 @@ def test_background_writer_reports_failures_instead_of_raising(tmp_path: Path, m
     blocker = tmp_path / "file"
     blocker.write_text("x")
     w = BackgroundWriter(blocker / "logs", 0.0, {})                    # cannot create the folder
-    assert wait(lambda: w.error is not None) and "無法開始記錄" in str(w.error)
+    assert wait(lambda: w.error is not None) and str(w.error).startswith("無法開始記錄")
     w.packet(0.0, None, 0, b"x", None)                                 # ignored, never raises
 
     monkeypatch.setattr(BackgroundWriter, "QUEUE_MAX", 3)
@@ -128,4 +128,4 @@ def test_background_writer_reports_failures_instead_of_raising(tmp_path: Path, m
     slow = BackgroundWriter(tmp_path, 0.0, {})
     for i in range(10):
         slow.packet(i, None, 0, b"x", None)
-    assert slow.error == "記錄裝置太慢，已停止記錄"
+    assert str(slow.error) == "記錄裝置太慢，已停止記錄"

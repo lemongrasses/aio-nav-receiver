@@ -162,7 +162,7 @@ def test_recording_failure_keeps_monitoring(live: tuple, tmp_path: Path) -> None
 
 
 class _Exploding:
-    kind, label, errors = "live", "test", []  # type: ignore[var-annotated]
+    kind, label, address, errors = "live", "test", "test", []  # type: ignore[var-annotated]
     start_time = 0.0
 
     def clock(self) -> float:
@@ -191,7 +191,8 @@ def test_port_in_use_is_an_error_not_a_crash() -> None:
     first = UdpSource("127.0.0.1", [port])
     second = UdpSource("127.0.0.1", [port])
     try:
-        assert first.errors == [] and len(second.errors) == 1 and str(port) in second.errors[0]
+        assert first.errors == [] and len(second.errors) == 1
+        assert str(second.errors[0]) == f"無法監聽 127.0.0.1:{port}：這個埠已被其他程式使用"   # not the OS's text
         packets: List[object] = []
         packets, _ = second.poll(0.01)
         assert packets == []

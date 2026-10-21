@@ -15,12 +15,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
-from . import __version__
+from . import __version__, i18n
 from .config import Settings, to_dict
 from .core import protocol as P
 from .core.gate import Counters, GateConfig, Verdict
 from .core.monitor import Monitor, Transition
 from .core.track import TrackPoint
+from .i18n import Msg
 from .io.recording import BackgroundWriter, Recording
 from .io.sources import ReplaySource, UdpSource
 
@@ -66,11 +67,11 @@ class Snapshot:
     track: Tuple[TrackPoint, ...]
     track_version: int
     source_kind: str                    # "live" | "replay" | "stopped"
-    source_label: str
-    source_errors: Tuple[str, ...] = ()
+    source_address: str                 # live: host:port(s); replay: the file name
+    source_errors: Tuple[Msg, ...] = ()
     replay: Optional[ReplayInfo] = None
     recording: Optional[str] = None     # while recording: its path, without extension
-    recording_error: Optional[str] = None
+    recording_error: Optional[Msg] = None
     engine_error: Optional[str] = None
     verdict_since: float = 0.0          # when the verdict last changed
     status_rate: float = 0.0
@@ -87,11 +88,11 @@ class Snapshot:
 
     @property
     def failure(self) -> Optional[str]:
-        """A fault that overrides the verdict: the screen must show 阻擋 with this text."""
+        """A fault that overrides the verdict: the screen must show 阻擋 with this text (current language)."""
         if self.engine_error:
-            return f"監看程式內部錯誤：{self.engine_error}"
+            return i18n.t("fail.internal", error=self.engine_error)
         if self.source_errors:
-            return "；".join(self.source_errors)
+            return "\n".join(str(m) for m in self.source_errors)
         return None
 
 
@@ -108,7 +109,7 @@ class _Run:
     writer: Optional[BackgroundWriter] = None
     recording_since: Optional[float] = None
     closing: List[BackgroundWriter] = field(default_factory=list)     # stopped, still finishing their files
-    recording_error: Optional[str] = None
+    recording_error: Optional[Msg] = None
     engine_error: Optional[str] = None
     track_cache: Tuple[int, Tuple[TrackPoint, ...]] = (-1, ())
 
@@ -177,7 +178,7 @@ class Engine:
             run.engine_error = f"{type(e).__name__}: {e}"
             self._publish(run)
         finally:
-            self._close_writer(run, "停止記錄")
+            self._close_writer(run)
             run.source.close()
             for w in run.closing:               # let the files be completed before the run ends
                 if not w.join(WRITER_FINISH):
@@ -212,7 +213,7 @@ class Engine:
                 return
             if cmd == "record":
                 if arg is None:
-                    self._close_writer(run, "停止記錄")
+                    self._close_writer(run)
                 elif run.writer is None and run.source.kind == "live":
                     self._open_writer(run, Path(str(arg)))
             elif cmd == "speed" and isinstance(run.source, ReplaySource):
@@ -229,10 +230,10 @@ class Engine:
         w = BackgroundWriter(folder, run.source.clock(), header, csv=run.settings.record_csv)
         run.writer, run.recording_error, run.recording_since = w, None, run.monitor.t
         log.info("recording to %s", w.base)
-        w.event(run.monitor.t, "開始記錄")
+        w.event(run.monitor.t, i18n.t("rec.event_start"))
         v = run.monitor.verdict
         if v is not None:
-            w.event(run.monitor.t, f"{v.word} {v.text}")
+            w.event(run.monitor.t, _event_text(v))
 
     def _check_writer(self, run: _Run) -> None:
         """A failed recording stops; monitoring goes on."""
@@ -244,10 +245,10 @@ class Engine:
             run.closing.append(w)
             run.writer, run.recording_since = None, None
 
-    def _close_writer(self, run: _Run, text: str) -> None:
+    def _close_writer(self, run: _Run) -> None:
         w = run.writer
         if w is not None:
-            w.event(run.monitor.t, text)
+            w.event(run.monitor.t, i18n.t("rec.event_stop"))
             w.close()
             run.closing.append(w)
             run.writer, run.recording_since = None, None
@@ -257,7 +258,7 @@ class Engine:
             v = tr.verdict
             log.debug("%.3f %s %s", tr.t, v.word, v.text)
             if run.writer is not None:
-                run.writer.event(tr.t, f"{v.word} {v.text}")
+                run.writer.event(tr.t, _event_text(v))
             if self._on_transition is not None:
                 self._on_transition(tr)
 
@@ -279,7 +280,12 @@ class Engine:
             nav=g.nav, nav_at=g.nav_at, status=g.status, status_at=g.status_at, count=g.count.copy(),
             nav_rate=mon.nav_rate(mon.t), flag_seen=dict(mon.flag_seen), nav_sender=mon.nav_sender,
             status_sender=mon.status_sender, track=track, track_version=track_version, source_kind=src.kind,
-            source_label=src.label, source_errors=tuple(src.errors), replay=replay,
+            source_address=src.address, source_errors=tuple(src.errors), replay=replay,
             recording=str(run.writer.base) if run.writer else None, recording_error=run.recording_error,
             engine_error=run.engine_error, verdict_since=mon.changed_at, status_rate=mon.status_rate(mon.t),
             ready_since=g.ready_since, recording_since=run.recording_since)
+
+
+def _event_text(v: Verdict) -> str:
+    """One events-log entry: the verdict in the current language, then a fixed code for searching."""
+    return f"{v.word} {v.text} [{v.reason.value}]"

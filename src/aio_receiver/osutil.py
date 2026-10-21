@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 from typing import List, NamedTuple, Optional, Sequence
 
-from . import APP_NAME
+from . import APP_NAME, i18n
 
 WINDOWS, MACOS = sys.platform == "win32", sys.platform == "darwin"
 
@@ -100,18 +100,16 @@ class FirewallHint(NamedTuple):
 def firewall_hint(ports: Sequence[int]) -> FirewallHint:
     plist = ",".join(str(p) for p in ports)
     if WINDOWS:
-        return FirewallHint("Windows 防火牆也要允許這個埠的入站 UDP。",
+        return FirewallHint(i18n.t("fw.windows"),
                             f'New-NetFirewallRule -DisplayName "AIO NAV UDP" -Direction Inbound -Protocol UDP '
                             f"-LocalPort {plist} -Action Allow")
     if MACOS:
-        return FirewallHint("macOS 第一次啟動時請允許「接受傳入連線」與「區域網路」存取"
-                            "（系統設定 → 隱私權與安全性 → 區域網路）。", None)
-    return FirewallHint("若有啟用 ufw 防火牆，請允許這個埠的 UDP。",
-                        " && ".join(f"sudo ufw allow {p}/udp" for p in ports))
+        return FirewallHint(i18n.t("fw.macos"), None)
+    return FirewallHint(i18n.t("fw.linux"), " && ".join(f"sudo ufw allow {p}/udp" for p in ports))
 
 
 def firewall_copied_text() -> str:
-    return "已複製。請在系統管理員 PowerShell 貼上執行。" if WINDOWS else "已複製。請在終端機貼上執行。"
+    return i18n.t("fw.copied_windows" if WINDOWS else "fw.copied_other")
 
 
 def enable_dpi_awareness() -> None:

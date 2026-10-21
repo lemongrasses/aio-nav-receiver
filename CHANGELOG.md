@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.0 — 2026-10-21
+
+### Changed
+- **One language at a time.** The screen, dialogs, command-line output and events log are all
+  in either 繁體中文 or English; they no longer mix the two. Protocol codes become readable words in
+  each language: READY → 就緒 / Ready, KEEP_STILL_REQUIRED → 需要保持靜止 / Must keep still, and the
+  same for all 18 conditions and the GNSS quality. Standard acronyms (GNSS, IMU, RTK, DSO), units and
+  packet ids (0x04, 0x05) stay as they are in both.
+- Common system errors (port in use, permission denied, disk full, storage gone, read-only) are
+  worded in the chosen language instead of showing the operating system's own text.
+- Each events-log line ends with a fixed reason code such as [not_ready], so logs can be searched
+  whatever language they were written in.
+- **設定 / Settings → 顯示 / Display → 語言 / Language:** 跟隨系統 (follow system) / 繁體中文 / English.
+  The new language applies at once. Saving restarts listening only when a receiving or rule
+  setting changed.
+- Long instructions wrap instead of running under the alignment route.
+
+
 ## 1.1.0 — 2026-10-21
 
 The screen was redesigned around what the operator needs: the answer, what to do, and how far along
