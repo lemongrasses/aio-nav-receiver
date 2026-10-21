@@ -3,9 +3,9 @@ name: ios
 on:
   push:
     branches: [main]
-    paths: ["ios/**", "fixtures/**", "tools/make_gate_vectors.py", ".github/workflows/ios.yml"]
+    paths: ["ios/**", "fixtures/**", "src/aio_receiver/i18n.py", "tools/make_gate_vectors.py", ".github/workflows/ios.yml"]
   pull_request:
-    paths: ["ios/**", "fixtures/**", "tools/make_gate_vectors.py", ".github/workflows/ios.yml"]
+    paths: ["ios/**", "fixtures/**", "src/aio_receiver/i18n.py", "tools/make_gate_vectors.py", ".github/workflows/ios.yml"]
   workflow_dispatch:
 
 permissions:
