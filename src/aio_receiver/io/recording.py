@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import IO, Any, Dict, Iterator, NamedTuple, Optional, Tuple
 
 from ..core import protocol as P
+from ..i18n import Msg, UserError, msg, os_error
 
 MAGIC = b"AIONREC\x00"
 VERSION = 2
@@ -51,7 +52,7 @@ class Recording:
         try:
             size = self._f.seek(0, 2)
             if size == 0:
-                raise ValueError("檔案是空的")
+                raise UserError("rec.empty")
             self._mm = mmap.mmap(self._f.fileno(), 0, access=mmap.ACCESS_READ)
         except BaseException:
             self._f.close()
@@ -63,7 +64,7 @@ class Recording:
             _, self.version, n = _PREAMBLE.unpack_from(self._mm, 0)
             if self.version != VERSION:
                 self.close()
-                raise ValueError(f"不支援的記錄檔版本 {self.version}")
+                raise UserError("rec.version", version=self.version)
             start = _PREAMBLE.size + n
             self.header = json.loads(bytes(self._mm[_PREAMBLE.size:start]).decode("utf-8"))
         self._rec = _REC_V2 if self.version == 2 else _REC_V1
@@ -72,10 +73,10 @@ class Recording:
         self._index(start, size)
         if not self.times:
             self.close()
-            raise ValueError("檔案裡沒有完整的封包記錄")
+            raise UserError("rec.no_records")
         if self.version == 1 and not any(self[i].data[:2] == P.SYNC for i in range(min(len(self), 20))):
             self.close()                        # v1 has no magic: refuse files that hold no AIO frames
-            raise ValueError("不是 AIO 記錄檔（.bin）")
+            raise UserError("rec.not_aio")
 
     def _index(self, i: int, size: int) -> None:
         mm, rec, unpack = self._mm, self._rec.size, _REC_V1.unpack_from
@@ -241,7 +242,7 @@ class BackgroundWriter:
 
     def __init__(self, folder: Path, clock_now: float, header: Dict[str, Any], csv: bool = True) -> None:
         self.base = new_base(folder)
-        self.error: Optional[str] = None
+        self.error: Optional[Msg] = None
         self._q: queue.Queue[Optional[Item]] = queue.Queue(self.QUEUE_MAX)
         self._abort = threading.Event()
         self._thread = threading.Thread(target=self._run, args=(clock_now, time.time(), header, csv),
@@ -260,7 +261,7 @@ class BackgroundWriter:
         try:
             self._q.put_nowait(item)
         except queue.Full:
-            self.error = "記錄裝置太慢，已停止記錄"
+            self.error = msg("rec.too_slow")
             self._abort.set()
 
     def close(self) -> None:
@@ -278,7 +279,7 @@ class BackgroundWriter:
         try:
             w = RecordingWriter(self.base, mono_ref, unix_ref, header, csv)
         except OSError as e:
-            self.error = f"無法開始記錄：{e.strerror or e}（{self.base.parent}）"
+            self.error = msg("rec.cannot_start", error=os_error(e), folder=str(self.base.parent))
             return
         try:
             while not self._abort.is_set():
@@ -295,7 +296,7 @@ class BackgroundWriter:
                     w.event(*item[1:])
                 w.flush_if_due()
         except OSError as e:
-            self.error = f"記錄已停止：{e.strerror or e}"
+            self.error = msg("rec.stopped", error=os_error(e))
         finally:
             w.close()
 

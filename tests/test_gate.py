@@ -24,7 +24,8 @@ def test_blocked_until_ready_is_stable() -> None:
     assert reason(g, 0) is Reason.NO_STATUS
     g.feed(status(1, state=3, inhibit=1 << 7), 0.0, "x")
     v = g.verdict(0.1)
-    assert v.reason is Reason.NOT_READY and "KEEP_STILL_REQUIRED" in v.text and "KEEP_STILL" in v.text
+    assert v.reason is Reason.NOT_READY and v.state == 3 and v.inhibit == 1 << 7
+    assert v.text == "狀態不是就緒：保持靜止（需要保持靜止）"
     g = ready_gate()
     assert reason(g, 1.5) is Reason.READY_NOT_STABLE
     assert g.verdict(2.5).usable

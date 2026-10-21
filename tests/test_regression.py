@@ -19,7 +19,7 @@ from aio_receiver.core.gate import GateConfig
 from aio_receiver.core.monitor import Transition
 from aio_receiver.engine import Engine
 from aio_receiver.io.recording import Recording
-from helpers import expected, fixture_file
+from helpers import expected, fixture_file, legacy_text
 
 FIXTURES = ["real_restart_v1.bin.gz", "real_ready_v2.bin.gz"]
 
@@ -29,7 +29,7 @@ def test_real_recording_matches_old_gate(name: str, tmp_path: Path) -> None:
     exp = expected(name)
     with Recording(fixture_file(name, tmp_path)) as rec:
         rep = analyse(rec, GateConfig())
-    got = [[tr.t, tr.verdict.usable, tr.verdict.text] for tr in rep.transitions]
+    got = [[tr.t, tr.verdict.usable, legacy_text(tr.verdict)] for tr in rep.transitions]
     assert len(got) == len(exp["transitions"])
     for g, e in zip(got, exp["transitions"]):
         assert g[1:] == e[1:]

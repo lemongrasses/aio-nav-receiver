@@ -55,6 +55,10 @@ When the output stops being usable, the band blinks red and the PC beeps (turn o
 **中斷時提示音**). The verdict is also in the window title, so the taskbar shows it. While replaying, a
 dark bar across the top says it is not live data and holds the speed and **回到即時** controls.
 
+**Language:** the program shows one language at a time, 繁體中文 or English. It follows the operating
+system until you choose one in **設定 / Settings → 顯示 / Display → 語言 / Language**, and the change
+applies at once. Standard acronyms (GNSS, IMU, RTK), units and packet ids (0x04) are the same in both.
+
 Keys: **Ctrl+R** start / stop recording, **Ctrl+O** open a recording, **F11** full screen, **Esc** leave
 full screen. The window sizes itself to the screen and scales text down on small or highly scaled
 laptop screens.

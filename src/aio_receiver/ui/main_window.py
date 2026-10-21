@@ -15,9 +15,10 @@ from pathlib import Path
 from tkinter import filedialog, messagebox
 from typing import List, Optional
 
-from .. import APP_NAME, __version__, config, osutil
+from .. import APP_NAME, __version__, config, i18n, osutil
 from ..config import Settings
 from ..engine import Engine, Snapshot
+from ..i18n import t
 from . import presentation as V
 from . import theme as T
 from .panels import GAP, Footer, GuidanceStrip, NavPanel, ReplayBar, StatusPanel, TrackPanel, VerdictBand
@@ -26,6 +27,9 @@ from .settings_dialog import SettingsDialog
 log = logging.getLogger(__name__)
 FRAME_MS = 100
 STALE_AFTER = 0.5               # seconds without a fresh snapshot = the engine is not running
+# Settings that change what the engine does; anything else (language, display, folder) needs no restart.
+ENGINE_FIELDS = ("host", "nav_port", "status_port", "status_id", "allowed_from", "status_timeout",
+                 "ready_stable", "nav_max_age", "record_csv")
 IP_REFRESH = 5.0                # seconds between looking up this computer's addresses
 
 
@@ -78,18 +82,19 @@ class MainWindow:
             self.render(self.engine.snapshot)
         except Exception as e:      # never leave a stale screen up
             log.exception("render failed")
-            self.band.show(V.Band("stop", "阻擋", f"畫面更新錯誤：{type(e).__name__}: {e}"), "", "")
+            self.band.show(V.Band("stop", t("word.blocked"), t("fail.render", error=f"{type(e).__name__}: {e}")),
+                           "", "")
         finally:
             if not self._closing:
                 self.root.after(FRAME_MS, self._frame)
 
     def render(self, snap: Optional[Snapshot]) -> None:
         if snap is None:
-            self.band.show(V.Band("idle", "阻擋", "監看程式尚未啟動"), "", "")
+            self.band.show(V.Band("idle", t("word.blocked"), t("fail.not_started")), "", "")
             return
         failure = snap.failure
         if failure is None and time.perf_counter() - snap.built > STALE_AFTER:
-            failure = "監看程式沒有回應"
+            failure = t("fail.not_responding")
         b = V.band(snap, failure)
         usable = b.kind == "go"
         if self._was_usable and not usable:                 # the output just stopped being usable
@@ -97,7 +102,7 @@ class MainWindow:
             if self.alert.get():
                 self.root.bell()
         self._was_usable = usable
-        since = f"已持續 {V.fmt_age(snap.now - snap.verdict_since)}" if snap.verdict_since > 0 else ""
+        since = t("band.since", age=V.fmt_age(snap.now - snap.verdict_since)) if snap.verdict_since > 0 else ""
         self.band.show(b, since, V.fmt_dur(snap.usable_total))
         self._set_title(b, snap)
 
@@ -123,7 +128,8 @@ class MainWindow:
 
     def _set_title(self, b: V.Band, snap: Snapshot) -> None:
         """The verdict in the title, so the taskbar shows it while the window is in the background."""
-        title = f"{'重播 ' if snap.source_kind == 'replay' else ''}{b.word}｜AIO NAV 接收監看 {__version__}"
+        prefix = t("win.replay_prefix") if snap.source_kind == "replay" else ""
+        title = prefix + t("win.title", word=b.word, version=__version__)
         if title != self._title:
             self._title = title
             self.root.title(title)
@@ -138,7 +144,7 @@ class MainWindow:
         try:
             self.engine.start_replay(path, self.settings, self.replay_bar.speed_value)
         except (OSError, ValueError) as e:
-            messagebox.showerror("無法重播", f"{path}\n\n{e}", parent=self.root)
+            messagebox.showerror(t("dlg.cannot_replay"), f"{path}\n\n{e}", parent=self.root)
 
     def copy_firewall(self) -> None:
         hint = osutil.firewall_hint(self.settings.ports)
@@ -159,9 +165,9 @@ class MainWindow:
     def open_replay(self) -> None:
         folder = osutil.record_dir(self.settings.record_dir)
         path = filedialog.askopenfilename(
-            parent=self.root, title="選擇要重播的記錄檔",
+            parent=self.root, title=t("dlg.choose_recording"),
             initialdir=str(folder if folder.is_dir() else osutil.executable_dir()),
-            filetypes=[("AIO 記錄檔", "*.bin"), ("所有檔案", "*.*")])
+            filetypes=[(t("dlg.recordings"), "*.bin"), (t("dlg.all_files"), "*.*")])
         if path:
             self.start_replay(Path(path))
 
@@ -193,9 +199,25 @@ class MainWindow:
         SettingsDialog(self.root, self.settings, self.apply_settings)
 
     def apply_settings(self, new: Settings) -> None:
-        self.settings = new
+        old, self.settings = self.settings, new
         log.info("settings changed: %s", new)
-        self.start_live()
+        if new.language != old.language:
+            self.rebuild()
+        if any(getattr(new, f) != getattr(old, f) for f in ENGINE_FIELDS):
+            self.start_live()
+
+    def rebuild(self) -> None:
+        """Rebuild every widget in the current language; the engine and its data keep running."""
+        i18n.set_language(self.settings.language)
+        T.init_fonts(self.root, i18n.language())
+        for child in self.root.winfo_children():
+            child.destroy()
+        self._title = ""
+        self._build()
+        self.toggle_track()
+        snap = self.engine.snapshot
+        if snap is not None and snap.replay is not None:
+            self.replay_bar.speed.set(f"{snap.replay.speed:g}×")
 
     def warn(self, title: str, lines: List[str]) -> None:
         self.root.after(300, lambda: messagebox.showwarning(title, "\n".join(lines), parent=self.root))
@@ -209,11 +231,11 @@ class MainWindow:
 def run(settings: Settings, problems: List[str], replay: Optional[Path] = None, speed: float = 1.0) -> None:
     osutil.enable_dpi_awareness()
     root = tk.Tk(className=APP_NAME)
-    T.init_fonts(root)
+    T.init_fonts(root, i18n.language())
     engine = Engine()
     win = MainWindow(root, engine, settings)
     if problems:
-        win.warn("設定檔有問題", ["下列設定無效，已改用預設值：", *problems])
+        win.warn(t("dlg.settings_problem"), [t("dlg.settings_ignored"), *problems])
     if replay is not None:
         win.start_replay(replay, speed)
     if engine.snapshot is None:

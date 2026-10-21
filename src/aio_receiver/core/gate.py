@@ -17,6 +17,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Literal, Optional
 
+from .. import i18n
 from . import protocol as P
 
 REORDER_WINDOW = 5      # a 0x05 sequence going back more than this = a second sender (spec)
@@ -35,15 +36,6 @@ class Reason(enum.Enum):
     NAV_NOT_FINITE = "nav_not_finite"
 
 
-_TEXT = {
-    Reason.USABLE: "可用",
-    Reason.NO_STATUS: "沒有最新的狀態封包 (0x05)",
-    Reason.READY_NOT_STABLE: "READY 尚未穩定",
-    Reason.NAV_STALE: "導航資料太舊 (0x04)",
-    Reason.NAV_TIME_NOT_FORWARD: "導航時間沒有往前",
-    Reason.NAV_NOT_ALIGNED: "導航旗標未對準",
-    Reason.NAV_NOT_FINITE: "導航資料不是有限值",
-}
 
 
 @dataclass(frozen=True)
@@ -55,14 +47,17 @@ class Verdict:
 
     @property
     def text(self) -> str:
+        """The reason in the current language (i18n)."""
         if self.reason is Reason.NOT_READY:
-            inh = ", ".join(P.bit_names(self.inhibit, P.INHIBIT_BITS)) or "—"
-            return f"狀態不是 READY：{P.name_of(self.state or 0, P.STATES)}（{inh}）"
-        return _TEXT[self.reason]
+            bits = [i for i in range(len(P.INHIBIT_BITS)) if self.inhibit >> i & 1]
+            inhibit = i18n.joined([i18n.inhibit_name(b) for b in bits]) or "—"
+            return i18n.t("reason.not_ready", state=i18n.state_name(P.name_of(self.state or 0, P.STATES)),
+                          inhibit=inhibit)
+        return i18n.t(f"reason.{self.reason.value}")
 
     @property
     def word(self) -> str:
-        return "可用" if self.usable else "阻擋"
+        return i18n.t("word.usable" if self.usable else "word.blocked")
 
 
 USABLE = Verdict(True, Reason.USABLE)

@@ -20,7 +20,7 @@ def test_band_kinds() -> None:
                         ("DEGRADED", "stop"), ("FAULT", "stop"), ("MAINTENANCE", "idle")):
         b = V.band(snap_from(ready_monitor(state=P.STATES.index(state)), 2.99), None)
         assert b.kind == kind, state
-    assert V.band(snap_from(ready_monitor(1.5), 1.49), None) == ("wait", "阻擋", "READY 確認中（需穩定 2 秒）")
+    assert V.band(snap_from(ready_monitor(1.5), 1.49), None) == ("wait", "阻擋", "就緒確認中（需穩定 2 秒）")
     stale = V.band(snap_from(ready_monitor(), 3.6), None)
     assert stale.kind == "stop" and "0x04 中斷" in stale.headline
     lost = V.band(snap_from(ready_monitor(), 8.0), None)
@@ -47,7 +47,7 @@ def test_rail() -> None:
 def test_links_and_ages() -> None:
     s = snap_from(ready_monitor(), 2.99)
     assert V.nav_link(s).kind == "go" and "Hz" in V.nav_link(s).text
-    assert V.status_link(s) == ("go", "2.0 Hz   0.5 s 前")
+    assert V.status_link(s) == ("go", "2.0 Hz   0.5 秒前")
     gone = replace(s, now=s.now + 75)
     assert V.nav_link(gone) == ("stop", "中斷 1 分 15 秒")
     assert V.status_link(replace(s, status=None)) == ("idle", "沒有資料")
