@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AIO NAV 接收監看</string>
+    <string name="tab_status">狀態</string>
+    <string name="tab_charts">圖表</string>
+    <string name="tab_track">軌跡</string>
+    <string name="tab_settings">設定</string>
+    <string name="usable">可用</string>
+    <string name="blocked">阻擋</string>
+    <string name="reason_usable">可用</string>
+    <string name="reason_no_status">沒有最新的狀態封包 (0x05)</string>
+    <string name="reason_not_ready">狀態不是就緒：%1$s（%2$s）</string>
+    <string name="reason_ready_not_stable">就緒尚未穩定</string>
+    <string name="reason_nav_stale">導航資料太舊 (0x04)</string>
+    <string name="reason_nav_time">導航時間沒有往前</string>
+    <string name="reason_not_aligned">導航旗標未對準</string>
+    <string name="reason_not_finite">導航資料不是有限值</string>
+    <string name="list_separator">、</string>
+    <string name="none">無</string>
+    <string name="cannot_listen">無法接收</string>
+    <string name="fail_bind">無法監聽 %1$s：%2$s</string>
+    <string name="os_in_use">這個埠已被其他程式使用</string>
+    <string name="os_denied">沒有權限</string>
+    <string name="os_no_address">這台電腦沒有這個位址</string>
+    <string name="os_other">系統錯誤 %1$s：%2$s</string>
+    <string name="cannot_listen_hint">可能有其他程式占用此埠，請到「設定」更換埠號。</string>
+    <string name="card_nav">導航 0x04</string>
+    <string name="latitude">緯度</string>
+    <string name="longitude">經度</string>
+    <string name="height">高度</string>
+    <string name="heading">航向</string>
+    <string name="speed">水平速度</string>
+    <string name="roll_pitch">橫滾 / 俯仰</string>
+    <string name="position_sigma_ned">位置 σ 北 / 東 / 下</string>
+    <string name="heading_sigma">航向 σ</string>
+    <string name="data_age">資料年齡</string>
+    <string name="receive_rate">接收頻率</string>
+    <string name="alignment">對準</string>
+    <string name="aiding">本次輔助更新</string>
+    <string name="no_nav">尚未收到 0x04 導航封包。</string>
+    <string name="card_status">狀態 0x05</string>
+    <string name="state">狀態</string>
+    <string name="requested_action">要求的動作</string>
+    <string name="gnss_quality">GNSS 品質</string>
+    <string name="session">工作階段</string>
+    <string name="sequence">序號</string>
+    <string name="uptime">Dashboard 運行時間</string>
+    <string name="nav_rate_dashboard">導航頻率</string>
+    <string name="nav_age_dashboard">0x04 年齡</string>
+    <string name="status_age">狀態年齡</string>
+    <string name="inhibit">阻擋條件</string>
+    <string name="health">成立條件</string>
+    <string name="no_status">沒有有效的 0x05 狀態封包。</string>
+    <string name="card_statistics">統計</string>
+    <string name="packets_04">0x04 包數</string>
+    <string name="packets_05">0x05 包數</string>
+    <string name="lost_05">0x05 遺失</string>
+    <string name="out_of_order">順序錯亂</string>
+    <string name="two_senders">兩個發送者</string>
+    <string name="invalid">無效</string>
+    <string name="other_sources">其他來源</string>
+    <string name="time_usable">累計可用</string>
+    <string name="listening_on">接收中，UDP 埠 %1$s</string>
+    <string name="not_listening">未在接收。</string>
+    <string name="start_monitoring">開始接收</string>
+    <string name="stop_monitoring">停止</string>
+    <string name="this_phone">這支手機</string>
+    <string name="last_sender">最後發送者</string>
+    <string name="window_1">1 分</string>
+    <string name="window_5">5 分</string>
+    <string name="window_10">10 分</string>
+    <string name="status_timeline">狀態時間軸</string>
+    <string name="lane_gate">判斷</string>
+    <string name="lane_state">狀態</string>
+    <string name="legend_no_status">沒有狀態封包 0x05</string>
+    <string name="section_quality">導航品質</string>
+    <string name="section_motion">運動</string>
+    <string name="position_sigma">位置 σ</string>
+    <string name="data_age_04">0x04 資料年齡</string>
+    <string name="limit">上限</string>
+    <string name="no_data_window">這段時間沒有資料。</string>
+    <string name="follow_vehicle">跟隨車輛</string>
+    <string name="no_position">沒有目前位置。</string>
+    <string name="track_hint">拖曳平移、雙指縮放；上方為北。</string>
+    <string name="not_connected">未連上網路。</string>
+    <string name="receiving">接收</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="wifi">Wi-Fi</string>
+    <string name="wifi_connected">已連線</string>
+    <string name="wifi_no_internet">已連線，沒有網際網路（保持連線）</string>
+    <string name="wifi_off">未連線</string>
+    <string name="this_phone_footer">連上 Jetson 的 Wi-Fi 熱點（閘道通常是 10.42.0.1）。Jetson 上的轉發程式要送到這支手機的 Wi-Fi 位址與 0x04 埠；0x05 需開啟 status_udp.enabled。若 Android 提示此 Wi-Fi 沒有網際網路，請選擇保持連線：本 App 接收時會讓 Wi-Fi 保持連線。</string>
+    <string name="section_receiving">接收</string>
+    <string name="port_04">0x04 埠</string>
+    <string name="separate_05_port">0x05 用另一個埠</string>
+    <string name="port_05">0x05 埠</string>
+    <string name="message_id_05">0x05 訊息 ID</string>
+    <string name="accept_only_ip">只接受來源 IP</string>
+    <string name="any">不限</string>
+    <string name="receiving_footer">UDP 沒有驗證，任何能送到這個埠的人都能偽造就緒狀態。請填入裝置的 IP，其他來源的封包只計數、不處理。</string>
+    <string name="section_rules">判斷規則</string>
+    <string name="status_timeout">狀態逾時</string>
+    <string name="ready_stable">就緒穩定時間</string>
+    <string name="max_nav_age">導航最大年齡</string>
+    <string name="rules_footer">預設為 3.0 秒、2.0 秒與 0.5 秒，與桌面版相同；實際使用時不可放寬。</string>
+    <string name="section_display">顯示</string>
+    <string name="keep_screen_on">保持螢幕開啟</string>
+    <string name="background">在背景持續接收</string>
+    <string name="display_footer">在背景時 App 會持續接收，並在通知中顯示可用 / 阻擋。要結束請按通知上的「停止」。</string>
+    <string name="language">語言</string>
+    <string name="version">版本</string>
+    <string name="language_system">跟隨系統</string>
+    <string name="language_zh">繁體中文</string>
+    <string name="language_en">English</string>
+    <string name="apply">套用</string>
+    <string name="restore_defaults">恢復預設值</string>
+    <string name="clear_history">清除圖表與統計</string>
+    <string name="check_settings">請檢查埠號與來源 IP 位址。</string>
+    <string name="decrease">減少</string>
+    <string name="increase">增加</string>
+    <string name="channel_monitor">監控</string>
+    <string name="channel_monitor_description">顯示導航輸出是否可以使用。</string>
+    <string name="notifications_off">通知已關閉：App 在背景時不會顯示可用 / 阻擋通知。</string>
+    <string name="lamp_align">粗對準</string>
+    <string name="lamp_heading">航向有效</string>
+    <string name="lamp_fine">精對準</string>
+    <string-array name="state_names">
+        <item>啟動中</item>
+        <item>檢查中</item>
+        <item>導航啟動中</item>
+        <item>保持靜止</item>
+        <item>直線行駛</item>
+        <item>精對準</item>
+        <item>就緒</item>
+        <item>降級</item>
+        <item>故障</item>
+        <item>維護</item>
+    </string-array>
+    <string-array name="action_texts">
+        <item>不需動作</item>
+        <item>車輛保持完全靜止</item>
+        <item>在安全空曠處等速直線行駛</item>
+        <item>在有 GNSS 的地方繼續正常行駛</item>
+        <item>停止使用導航，依車輛安全程序處理</item>
+        <item>需要維護</item>
+        <item>已停止，按「恢復」後繼續</item>
+    </string-array>
+    <string-array name="gnss_quality_names">
+        <item>未知</item>
+        <item>無定位</item>
+        <item>單點定位</item>
+        <item>RTK 浮點解</item>
+        <item>RTK 固定解</item>
+    </string-array>
+    <string-array name="health_names">
+        <item>Dashboard 正常</item>
+        <item>設定有效</item>
+        <item>IMU 資料正常</item>
+        <item>GNSS 資料正常</item>
+        <item>GNSS 品質足夠</item>
+        <item>導航程式執行中</item>
+        <item>導航輸出正常</item>
+        <item>粗對準完成</item>
+        <item>航向有效</item>
+        <item>精對準完成</item>
+        <item>DSO 正常</item>
+        <item>對外路由正常</item>
+        <item>RTK 修正資料正常</item>
+        <item>儲存空間可寫入</item>
+        <item>車輛已確認</item>
+        <item>時間同步正常</item>
+        <item>沒有重複的程式</item>
+        <item>Wi-Fi 正常</item>
+    </string-array>
+    <string-array name="inhibit_names">
+        <item>開機中</item>
+        <item>設定無效</item>
+        <item>IMU 資料缺少或過舊</item>
+        <item>GNSS 資料缺少或過舊</item>
+        <item>GNSS 品質不足</item>
+        <item>導航程式未執行</item>
+        <item>導航輸出過舊</item>
+        <item>需要保持靜止</item>
+        <item>需要直線行駛</item>
+        <item>需要精對準</item>
+        <item>DSO 尚未就緒</item>
+        <item>對外路由中斷</item>
+        <item>RTK 修正資料中斷</item>
+        <item>儲存空間無法寫入</item>
+        <item>維護暫停</item>
+        <item>啟動逾時</item>
+        <item>擁有權衝突</item>
+        <item>內部錯誤</item>
+    </string-array>
+</resources>

@@ -1,0 +1,120 @@
+name: android
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths: ["android/**", "fixtures/**", "tools/make_gate_vectors.py", ".github/workflows/android.yml"]
+  pull_request:
+    paths: ["android/**", "fixtures/**", "tools/make_gate_vectors.py", ".github/workflows/android.yml"]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Attach the signed APK to this existing GitHub Release (e.g. v1.2.0); empty = build only"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+env:
+  # SHA-256 of the release certificate (CN=AIO NAV Receiver, O=lemongrass, C=TW). A signed APK with any other
+  # certificate could not update installed copies, so the build fails instead of publishing it.
+  RELEASE_CERT_SHA256: 4ee6a34919d761a47e1b57b1c09d9e101f6d67f9b0a928a698efcc6132817e94
+
+jobs:
+  build:
+    name: build + unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - id: version
+        run: echo "version=$(sed -nE 's/.*versionName = "([^"]+)".*/\1/p' app/build.gradle.kts)" >> "$GITHUB_OUTPUT"
+      # The unit tests read ../fixtures from the checkout (the desktop and iOS apps test against the same files).
+      - name: assembleDebug testDebugUnitTest
+        run: ./gradlew assembleDebug testDebugUnitTest --console=plain
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-test-results
+          path: android/app/build/reports/tests/testDebugUnitTest/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aio-nav-receiver-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      # Signed release APK. The keystore comes from the repository secrets, which pull requests from forks
+      # do not get: then this part is skipped.
+      - name: signed release APK
+        id: release
+        env:
+          KEYSTORE_BASE64: ${{ secrets.AIONAV_KEYSTORE_BASE64 }}
+          AIONAV_KEYSTORE_PASSWORD: ${{ secrets.AIONAV_KEYSTORE_PASSWORD }}
+          AIONAV_KEY_ALIAS: ${{ secrets.AIONAV_KEY_ALIAS }}
+          AIONAV_KEY_PASSWORD: ${{ secrets.AIONAV_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::notice::No signing secrets here; the release APK is not built."
+            exit 0
+          fi
+          export AIONAV_KEYSTORE="$RUNNER_TEMP/aionav-release.jks"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$AIONAV_KEYSTORE"
+          ./gradlew assembleRelease --console=plain
+          rm -f "$AIONAV_KEYSTORE"
+          apk=app/build/outputs/apk/release/app-release.apk
+          apksigner="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
+          "$apksigner" verify --print-certs "$apk" | tee "$RUNNER_TEMP/certs.txt"
+          grep -q "certificate SHA-256 digest: $RELEASE_CERT_SHA256" "$RUNNER_TEMP/certs.txt" \
+            || { echo "::error::The release APK is not signed with the release certificate."; exit 1; }
+          name="AIO_NAV_Receiver-android-${{ steps.version.outputs.version }}.apk"
+          mkdir -p "$RUNNER_TEMP/out" && cp "$apk" "$RUNNER_TEMP/out/$name"
+          echo "dir=$RUNNER_TEMP/out" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        if: steps.release.outputs.dir != ''
+        with:
+          name: aio-nav-receiver-release-apk
+          path: ${{ steps.release.outputs.dir }}/*.apk
+          if-no-files-found: error
+
+  release:
+    name: attach APK to the GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ inputs.release_tag || github.ref_name }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: aio-nav-receiver-release-apk
+          path: out
+      - name: check the version
+        run: |
+          if [ "$TAG" != "v${{ needs.build.outputs.version }}" ]; then
+            echo "::warning::Tag $TAG but the app's versionName is ${{ needs.build.outputs.version }}."
+          fi
+      # On a tag push the ci workflow creates the release with the desktop builds; wait for it rather than race
+      # it, and create the release only if it never appears.
+      - name: upload
+        run: |
+          for i in $(seq 1 40); do
+            gh release view "$TAG" > /dev/null 2>&1 && break
+            [ "${{ inputs.release_tag }}" != "" ] && { echo "::error::No release $TAG."; exit 1; }
+            sleep 30
+          done
+          gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --verify-tag --generate-notes
+          gh release upload "$TAG" out/*.apk --clobber

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English; 繁體中文 in values-zh-rTW. One language at a time, like the desktop 1.2.0: wording from
+     src/aio_receiver/i18n.py where the same thing is shown, else ios/MyApp/Localizable.xcstrings.
+     Protocol codes are shown as these words; acronyms, units and packet ids stay as they are. -->
+<resources>
+    <string name="app_name">AIO NAV Receiver</string>
+    <string name="tab_status">Status</string>
+    <string name="tab_charts">Charts</string>
+    <string name="tab_track">Track</string>
+    <string name="tab_settings">Settings</string>
+    <string name="usable">Usable</string>
+    <string name="blocked">Blocked</string>
+    <string name="reason_usable">Usable</string>
+    <string name="reason_no_status">No current status packet (0x05)</string>
+    <string name="reason_not_ready">Status is not ready: %1$s (%2$s)</string>
+    <string name="reason_ready_not_stable">Ready, not yet stable</string>
+    <string name="reason_nav_stale">Navigation data too old (0x04)</string>
+    <string name="reason_nav_time">Navigation time did not move forward</string>
+    <string name="reason_not_aligned">Navigation flags not aligned</string>
+    <string name="reason_not_finite">Navigation data not finite</string>
+    <string name="list_separator">", "</string>
+    <string name="none">None</string>
+    <string name="cannot_listen">Cannot listen</string>
+    <string name="fail_bind">Cannot listen on %1$s: %2$s</string>
+    <string name="os_in_use">the port is in use by another program</string>
+    <string name="os_denied">permission denied</string>
+    <string name="os_no_address">this computer has no such address</string>
+    <string name="os_other">system error %1$s: %2$s</string>
+    <string name="cannot_listen_hint">Another app may be using this port. Change the port in Settings.</string>
+    <string name="card_nav">Navigation 0x04</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="height">Height</string>
+    <string name="heading">Heading</string>
+    <string name="speed">Ground speed</string>
+    <string name="roll_pitch">Roll / pitch</string>
+    <string name="position_sigma_ned">Position σ N / E / D</string>
+    <string name="heading_sigma">Heading σ</string>
+    <string name="data_age">Data age</string>
+    <string name="receive_rate">Receive rate</string>
+    <string name="alignment">Alignment</string>
+    <string name="aiding">Aiding this epoch</string>
+    <string name="no_nav">No 0x04 navigation packets yet.</string>
+    <string name="card_status">Status 0x05</string>
+    <string name="state">State</string>
+    <string name="requested_action">Requested action</string>
+    <string name="gnss_quality">GNSS quality</string>
+    <string name="session">Session</string>
+    <string name="sequence">Sequence</string>
+    <string name="uptime">Dashboard uptime</string>
+    <string name="nav_rate_dashboard">Navigation rate</string>
+    <string name="nav_age_dashboard">0x04 age</string>
+    <string name="status_age">Status age</string>
+    <string name="inhibit">Blocking conditions</string>
+    <string name="health">Conditions met</string>
+    <string name="no_status">No valid 0x05 status packet.</string>
+    <string name="card_statistics">Statistics</string>
+    <string name="packets_04">0x04 packets</string>
+    <string name="packets_05">0x05 packets</string>
+    <string name="lost_05">Lost 0x05</string>
+    <string name="out_of_order">Out of order</string>
+    <string name="two_senders">Two senders</string>
+    <string name="invalid">Invalid</string>
+    <string name="other_sources">Other senders</string>
+    <string name="time_usable">Usable total</string>
+    <string name="listening_on">Listening on UDP port %1$s</string>
+    <string name="not_listening">Not receiving.</string>
+    <string name="start_monitoring">Start receiving</string>
+    <string name="stop_monitoring">Stop</string>
+    <string name="this_phone">This phone</string>
+    <string name="last_sender">Last sender</string>
+    <string name="window_1">1 min</string>
+    <string name="window_5">5 min</string>
+    <string name="window_10">10 min</string>
+    <string name="status_timeline">Status timeline</string>
+    <string name="lane_gate">Gate</string>
+    <string name="lane_state">State</string>
+    <string name="legend_no_status">No status packets (0x05)</string>
+    <string name="section_quality">Navigation quality</string>
+    <string name="section_motion">Motion</string>
+    <string name="position_sigma">Position σ</string>
+    <string name="data_age_04">0x04 data age</string>
+    <string name="limit">Limit</string>
+    <string name="no_data_window">No data in this window.</string>
+    <string name="follow_vehicle">Follow vehicle</string>
+    <string name="no_position">No current position.</string>
+    <string name="track_hint">Drag to pan, pinch to zoom. North is up.</string>
+    <string name="not_connected">Not connected to a network.</string>
+    <string name="receiving">Receiving</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="wifi">Wi-Fi</string>
+    <string name="wifi_connected">Connected</string>
+    <string name="wifi_no_internet">Connected, no internet (kept connected)</string>
+    <string name="wifi_off">Not connected</string>
+    <string name="this_phone_footer">Join the Jetson\'s Wi-Fi hotspot (gateway usually 10.42.0.1). On the Jetson, the relay must send to this phone\'s Wi-Fi address and the 0x04 port; turn on status_udp.enabled for 0x05. If Android says the Wi-Fi has no internet, choose to stay connected: this app keeps the Wi-Fi up while it receives.</string>
+    <string name="section_receiving">Receiving</string>
+    <string name="port_04">0x04 port</string>
+    <string name="separate_05_port">Separate 0x05 port</string>
+    <string name="port_05">0x05 port</string>
+    <string name="message_id_05">0x05 message ID</string>
+    <string name="accept_only_ip">Accept only from IP</string>
+    <string name="any">Any</string>
+    <string name="receiving_footer">UDP has no authentication: anyone who can reach this port can fake the ready status. Enter the device\'s IP so packets from other senders are only counted.</string>
+    <string name="section_rules">Rules</string>
+    <string name="status_timeout">Status timeout</string>
+    <string name="ready_stable">Ready hold time</string>
+    <string name="max_nav_age">Navigation max age</string>
+    <string name="rules_footer">Defaults are 3.0 s, 2.0 s and 0.5 s, the same as the desktop app. Do not loosen them for real use.</string>
+    <string name="section_display">Display</string>
+    <string name="keep_screen_on">Keep screen on</string>
+    <string name="background">Keep receiving in the background</string>
+    <string name="display_footer">In the background the app keeps receiving and shows Usable / Blocked in a notification. Tap Stop there to end it.</string>
+    <string name="language">Language</string>
+    <string name="version">Version</string>
+    <string name="language_system">Follow system</string>
+    <string name="language_zh">繁體中文</string>
+    <string name="language_en">English</string>
+    <string name="apply">Apply</string>
+    <string name="restore_defaults">Restore defaults</string>
+    <string name="clear_history">Clear charts and statistics</string>
+    <string name="check_settings">Check the ports and the source IP address.</string>
+    <string name="decrease">Decrease</string>
+    <string name="increase">Increase</string>
+    <string name="channel_monitor">Monitoring</string>
+    <string name="channel_monitor_description">Shows whether the navigation output may be used.</string>
+    <string name="notifications_off">Notifications are off: the Usable / Blocked notification will not show while the app is in the background.</string>
+    <string name="lamp_align">Coarse aligned</string>
+    <string name="lamp_heading">Heading valid</string>
+    <string name="lamp_fine">Fine aligned</string>
+    <string-array name="state_names">
+        <item>Booting</item>
+        <item>Checking</item>
+        <item>Starting navigation</item>
+        <item>Keep still</item>
+        <item>Drive straight</item>
+        <item>Refining</item>
+        <item>Ready</item>
+        <item>Degraded</item>
+        <item>Fault</item>
+        <item>Maintenance</item>
+    </string-array>
+    <string-array name="action_texts">
+        <item>Nothing to do</item>
+        <item>Keep the vehicle completely still</item>
+        <item>Drive straight at a steady speed in a safe, open area</item>
+        <item>Keep driving normally where GNSS is available</item>
+        <item>Stop using navigation and follow the vehicle\'s safety procedure</item>
+        <item>Maintenance is needed</item>
+        <item>Stopped. Press Resume to continue</item>
+    </string-array>
+    <string-array name="gnss_quality_names">
+        <item>Unknown</item>
+        <item>No fix</item>
+        <item>Single point</item>
+        <item>RTK float</item>
+        <item>RTK fixed</item>
+    </string-array>
+    <string-array name="health_names">
+        <item>Dashboard OK</item>
+        <item>Configuration valid</item>
+        <item>IMU data OK</item>
+        <item>GNSS data OK</item>
+        <item>GNSS quality sufficient</item>
+        <item>Navigation process running</item>
+        <item>Navigation output OK</item>
+        <item>Coarse alignment done</item>
+        <item>Heading valid</item>
+        <item>Fine alignment done</item>
+        <item>DSO OK</item>
+        <item>External route OK</item>
+        <item>RTK corrections OK</item>
+        <item>Storage writable</item>
+        <item>Vehicle acknowledged</item>
+        <item>Time synchronised</item>
+        <item>No duplicate process</item>
+        <item>Wi-Fi OK</item>
+    </string-array>
+    <string-array name="inhibit_names">
+        <item>Booting</item>
+        <item>Configuration invalid</item>
+        <item>IMU data missing or stale</item>
+        <item>GNSS data missing or stale</item>
+        <item>GNSS quality too low</item>
+        <item>Navigation not running</item>
+        <item>Navigation output stale</item>
+        <item>Must keep still</item>
+        <item>Must drive straight</item>
+        <item>Fine alignment needed</item>
+        <item>DSO not ready</item>
+        <item>External route down</item>
+        <item>RTK corrections lost</item>
+        <item>Storage not writable</item>
+        <item>Maintenance hold</item>
+        <item>Startup timed out</item>
+        <item>Ownership conflict</item>
+        <item>Internal fault</item>
+    </string-array>
+</resources>
