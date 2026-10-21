@@ -19,6 +19,8 @@ nonisolated struct MonitorSettings: Codable, Equatable, Sendable {
     var readyStable = 2.0
     var navMaxAge = 0.5
     var keepScreenOn = true
+    /// "zh-Hant" or "en"; nil = follow the iPhone's language.
+    var language: String?
 
     var ports: [UInt16] { [navPort, statusPort ?? navPort] }
     var allowedSource: String? {
@@ -31,6 +33,8 @@ nonisolated struct MonitorSettings: Codable, Equatable, Sendable {
         var a = self, b = other
         a.keepScreenOn = false
         b.keepScreenOn = false
+        a.language = nil
+        b.language = nil
         return a != b
     }
 

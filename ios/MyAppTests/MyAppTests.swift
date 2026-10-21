@@ -395,3 +395,122 @@ struct RealRecordingTests {
         #expect(recording.hasSenders == (name == "real_ready_v2"))
     }
 }
+
+// MARK: - Language (the desktop's src/aio_receiver/i18n.py is the reference wording)
+
+struct VocabularyTests {
+
+    static let i18n: String = {
+        let url = Fixtures.folder.deletingLastPathComponent().appendingPathComponent("src/aio_receiver/i18n.py")
+        return (try? String(contentsOf: url, encoding: .utf8)) ?? ""
+    }()
+
+    /// The source of one top-level table, e.g. `_STATES = {…}`, up to the next table or blank line.
+    static func block(_ name: String) -> String {
+        guard let start = i18n.range(of: "\n\(name) = ") else { return "" }
+        let rest = i18n[start.upperBound...]
+        let ends = ["\n\n", "\n_"].compactMap { rest.range(of: $0)?.lowerBound }
+        return String(rest[..<(ends.min() ?? rest.endIndex)])
+    }
+
+    static let pair = #"\(\s*"((?:[^"\\]|\\.)*)"\s*,\s*"((?:[^"\\]|\\.)*)"\s*\)"#
+
+    /// ("zh", "en") pairs in order.
+    static func pairs(_ text: String) -> [[String]] {
+        let re = try! NSRegularExpression(pattern: pair)
+        return re.matches(in: text, range: NSRange(text.startIndex..., in: text)).map { m in
+            (1...2).map { String(text[Range(m.range(at: $0), in: text)!]) }
+        }
+    }
+
+    /// "KEY": ("zh", "en") entries.
+    static func keyed(_ text: String) -> [String: [String]] {
+        let re = try! NSRegularExpression(pattern: #""([A-Za-z0-9_.]+)":\s*"# + pair)
+        var out: [String: [String]] = [:]
+        for m in re.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
+            let g = (1...3).map { String(text[Range(m.range(at: $0), in: text)!]) }
+            out[g[0]] = [g[1], g[2]]
+        }
+        return out
+    }
+
+    static func flat(_ table: [String: (String, String)]) -> [String: [String]] {
+        table.mapValues { [$0.0, $0.1] }
+    }
+
+    @Test func wordingMatchesDesktop() throws {
+        try #require(!Self.i18n.isEmpty, "src/aio_receiver/i18n.py not found")
+        #expect(Self.keyed(Self.block("_STATES")) == Self.flat(Vocabulary.states))
+        #expect(Self.keyed(Self.block("_ACTIONS")) == Self.flat(Vocabulary.actions))
+        #expect(Self.keyed(Self.block("_LAMPS")) == Self.flat(Vocabulary.lamps))
+        #expect(Self.pairs(Self.block("_GNSS_QUALITY")) == Vocabulary.gnssQuality.map { [$0.0, $0.1] })
+        #expect(Self.pairs(Self.block("_HEALTH")) == Vocabulary.health.map { [$0.0, $0.1] })
+        #expect(Self.pairs(Self.block("_INHIBIT")) == Vocabulary.inhibit.map { [$0.0, $0.1] })
+        let desktop = Self.keyed(Self.i18n)              // _T has blank lines between its groups
+        for (key, value) in Vocabulary.messages {
+            #expect(desktop[key] == [value.0, value.1], "\(key)")
+        }
+    }
+
+    @Test func tablesAreComplete() {
+        #expect(Set(Vocabulary.states.keys) == Set(DashboardState.names))
+        #expect(Set(Vocabulary.actions.keys) == Set(RequestedAction.names))
+        #expect(Vocabulary.health.count == StatusBits.health.count)
+        #expect(Vocabulary.inhibit.count == StatusBits.inhibit.count)
+        #expect(Vocabulary.gnssQuality.count == StatusBits.gnssQuality.count)
+    }
+
+    /// One language at a time: no Chinese in English, no raw protocol codes in either.
+    @Test func noMixedLanguages() throws {
+        let cjk = try Regex(#"[\p{Han}]"#)
+        let code = try Regex(#"\b[A-Z]{3,}_[A-Z_]+\b"#)       // KEEP_STILL_REQUIRED, NAV_STARTING …
+        let words = Vocabulary.states.values.map { $0 } + Vocabulary.actions.values.map { $0 }
+            + Vocabulary.lamps.values.map { $0 } + Vocabulary.gnssQuality + Vocabulary.health + Vocabulary.inhibit
+            + Vocabulary.messages.values.map { $0 }
+        for (zh, en) in words {
+            #expect(en.firstMatch(of: cjk) == nil, "\(en)")
+            #expect(zh.firstMatch(of: code) == nil && en.firstMatch(of: code) == nil, "\(zh) / \(en)")
+        }
+        let catalog = try JSONSerialization.jsonObject(
+            with: Data(contentsOf: Fixtures.folder.deletingLastPathComponent().appendingPathComponent("ios/MyApp/Localizable.xcstrings"))
+        ) as? [String: Any]
+        let strings = try #require(catalog?["strings"] as? [String: [String: Any]])
+        for (key, entry) in strings {
+            #expect(key.firstMatch(of: cjk) == nil, "English key has Chinese: \(key)")
+            let zh = ((entry["localizations"] as? [String: Any])?["zh-Hant"] as? [String: Any])
+                .flatMap { $0["stringUnit"] as? [String: Any] }?["value"] as? String
+            #expect(zh != nil, "no 繁中 for \(key)")
+            #expect(zh?.firstMatch(of: code) == nil, "\(key)")
+        }
+    }
+
+    @Test func reasonsReadInOneLanguage() {
+        let notReady = VehicleGate.Verdict.notReady(state: 3, inhibit: 1 << 7 | 1 << 4)
+        #expect(Vocabulary.reason(notReady, .zhHant) == "狀態不是就緒：保持靜止（GNSS 品質不足、需要保持靜止）")
+        #expect(Vocabulary.reason(notReady, .en) == "Status is not ready: Keep still (GNSS quality too low, Must keep still)")
+        #expect(Vocabulary.reason(.notReady(state: 6, inhibit: 0), .en) == "Status is not ready: Ready (—)")
+        #expect(Vocabulary.reason(.readyNotStable, .zhHant) == "就緒尚未穩定")
+        #expect(Vocabulary.word(usable: false, .en) == "Blocked")
+        #expect(Vocabulary.actionText(1, .en) == "Keep the vehicle completely still")
+        #expect(Vocabulary.lampName(.alignment, .zhHant) == "粗對準")
+        #expect(Vocabulary.gnssQualityName(9, .en) == "#9")
+    }
+
+    @Test func systemErrorsAreWorded() {
+        #expect(Vocabulary.bindError(port: 9000, code: EADDRINUSE, .zhHant) == "無法監聽 0.0.0.0:9000：這個埠已被其他程式使用")
+        #expect(Vocabulary.bindError(port: 9000, code: EACCES, .en) == "Cannot listen on 0.0.0.0:9000: permission denied")
+        #expect(Vocabulary.bindError(port: 1, code: EIO, .en).hasPrefix("Cannot listen on 0.0.0.0:1: system error \(EIO): "))
+    }
+
+    @Test func languageSettingResolves() {
+        #expect(UILanguage.resolve("en") == .en)
+        #expect(UILanguage.resolve("zh-Hant") == .zhHant)
+        #expect(UILanguage.resolve(nil) == UILanguage.system)
+        #expect(UILanguage.resolve("fr") == UILanguage.system)
+        var a = MonitorSettings(), b = a
+        b.language = "en"
+        #expect(!a.needsRestart(comparedTo: b))         // switching language keeps listening
+        a.navPort = 9001
+        #expect(a.needsRestart(comparedTo: b))
+    }
+}

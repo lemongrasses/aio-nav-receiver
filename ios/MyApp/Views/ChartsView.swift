@@ -113,6 +113,7 @@ private struct EmptyChartText: View {
 struct StatusTimelineChart: View {
     let segments: [TimelineSegment]
     let window: ClosedRange<Date>
+    @Environment(\.uiLanguage) private var lang
 
     struct Swatch: Identifiable {
         let name: String
@@ -145,10 +146,20 @@ struct StatusTimelineChart: View {
         return runs
     }
 
+    /// The legend's words for a colour key: the verdict, "no status", or the dashboard state.
+    private func label(_ key: String) -> String {
+        switch key {
+        case "USABLE": Vocabulary.word(usable: true, lang)
+        case "BLOCKED": Vocabulary.word(usable: false, lang)
+        case "NO_STATUS": Vocabulary.t("band.no_status", lang)
+        default: Vocabulary.states[key].map(lang.pick) ?? key
+        }
+    }
+
     var body: some View {
         let visible = segments.filter { $0.end >= window.lowerBound }
-        let gate = String(localized: "Gate")
-        let state = String(localized: "State")
+        let gate = lang.pick(("判斷", "Verdict"))
+        let state = lang.pick(("狀態", "State"))
         VStack(alignment: .leading, spacing: 8) {
             Text("Status timeline")
                 .font(.headline)
@@ -175,7 +186,7 @@ struct StatusTimelineChart: View {
                 ForEach(Self.swatches.filter { shown.contains($0.name) || $0.name == "USABLE" || $0.name == "BLOCKED" }) { swatch in
                     HStack(spacing: 4) {
                         RoundedRectangle(cornerRadius: 2).fill(swatch.color).frame(width: 10, height: 10)
-                        Text(verbatim: swatch.name).font(.caption2.monospaced())
+                        Text(verbatim: label(swatch.name)).font(.caption2)
                     }
                 }
             }
