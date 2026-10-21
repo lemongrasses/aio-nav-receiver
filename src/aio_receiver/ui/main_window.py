@@ -1,0 +1,222 @@
+"""Main window: composes the parts and renders the engine's latest snapshot every 100 ms.
+
+Fail safe: an engine error, a bind error, a snapshot older than STALE_AFTER or an exception while
+rendering all show 阻擋. The next frame is always scheduled, whatever happened in this one.
+
+Keys: Ctrl+R record, Ctrl+O open a recording, F11 full screen, Esc leave full screen.
+"""
+
+from __future__ import annotations
+
+import logging
+import time
+import tkinter as tk
+from pathlib import Path
+from tkinter import filedialog, messagebox
+from typing import List, Optional
+
+from .. import APP_NAME, __version__, config, osutil
+from ..config import Settings
+from ..engine import Engine, Snapshot
+from . import presentation as V
+from . import theme as T
+from .panels import GAP, Footer, GuidanceStrip, NavPanel, ReplayBar, StatusPanel, TrackPanel, VerdictBand
+from .settings_dialog import SettingsDialog
+
+log = logging.getLogger(__name__)
+FRAME_MS = 100
+STALE_AFTER = 0.5               # seconds without a fresh snapshot = the engine is not running
+IP_REFRESH = 5.0                # seconds between looking up this computer's addresses
+
+
+class MainWindow:
+    def __init__(self, root: tk.Tk, engine: Engine, settings: Settings) -> None:
+        self.root, self.engine, self.settings = root, engine, settings
+        self.show_track = tk.BooleanVar(value=settings.show_track)
+        self.alert = tk.BooleanVar(value=settings.alert_sound)
+        self._closing = False
+        self._was_usable = False
+        self._title = ""
+        self._ips: List[str] = []
+        self._ips_at = float("-inf")
+        self._build()
+        self.toggle_track()
+        root.protocol("WM_DELETE_WINDOW", self.close)
+        root.bind("<Control-r>", lambda _e: self.toggle_record())
+        root.bind("<Control-o>", lambda _e: self.open_replay())
+        root.bind("<F11>", lambda _e: root.attributes("-fullscreen", not root.attributes("-fullscreen")))
+        root.bind("<Escape>", lambda _e: root.attributes("-fullscreen", False))
+
+    # ------------------------------------------------------------------ layout
+    def _build(self) -> None:
+        r = self.root
+        r.configure(bg=T.KERB)
+        T.init_styles(r)
+        r.geometry(T.fit_to_screen(r))
+        r.minsize(1100, 720)
+        self.replay_bar = ReplayBar(r, self.change_speed, self.start_live)
+        self.band = VerdictBand(r)
+        self.guidance = GuidanceStrip(r, self.copy_firewall)
+        self.footer = Footer(r, {"record": self.toggle_record, "replay": self.open_replay,
+                                 "settings": self.open_settings, "track": self.toggle_track,
+                                 "alert": self.toggle_alert}, self.show_track, self.alert)
+        self.body = body = tk.Frame(r, bg=T.KERB, padx=16, pady=GAP)
+        body.pack(fill="both", expand=True)
+        for col, weight in enumerate((8, 6, 5)):
+            body.columnconfigure(col, weight=weight, uniform="c")
+        body.rowconfigure(0, weight=1)
+        self.nav = NavPanel(body)
+        self.status = StatusPanel(body)
+        self.track = TrackPanel(body, self.engine.clear_track)
+
+    # ------------------------------------------------------------------- frame
+    def start(self) -> None:
+        self.root.after(FRAME_MS, self._frame)
+
+    def _frame(self) -> None:
+        try:
+            self.render(self.engine.snapshot)
+        except Exception as e:      # never leave a stale screen up
+            log.exception("render failed")
+            self.band.show(V.Band("stop", "阻擋", f"畫面更新錯誤：{type(e).__name__}: {e}"), "", "")
+        finally:
+            if not self._closing:
+                self.root.after(FRAME_MS, self._frame)
+
+    def render(self, snap: Optional[Snapshot]) -> None:
+        if snap is None:
+            self.band.show(V.Band("idle", "阻擋", "監看程式尚未啟動"), "", "")
+            return
+        failure = snap.failure
+        if failure is None and time.perf_counter() - snap.built > STALE_AFTER:
+            failure = "監看程式沒有回應"
+        b = V.band(snap, failure)
+        usable = b.kind == "go"
+        if self._was_usable and not usable:                 # the output just stopped being usable
+            self.band.flash()
+            if self.alert.get():
+                self.root.bell()
+        self._was_usable = usable
+        since = f"已持續 {V.fmt_age(snap.now - snap.verdict_since)}" if snap.verdict_since > 0 else ""
+        self.band.show(b, since, V.fmt_dur(snap.usable_total))
+        self._set_title(b, snap)
+
+        replay = snap.source_kind == "replay"
+        if replay != bool(self.replay_bar.frame.winfo_ismapped()):
+            if replay:
+                self.replay_bar.frame.pack(fill="x", before=self.band.frame)
+            else:
+                self.replay_bar.frame.pack_forget()
+        self.replay_bar.update(snap)
+        self.guidance.update(snap, self.settings.nav_port, osutil.firewall_hint(self.settings.ports),
+                             self._local_ips(snap))
+        self.nav.update(snap)
+        self.status.update(snap)
+        if self.show_track.get():
+            self.track.update(snap)
+        self.footer.update(snap)
+
+    def _local_ips(self, snap: Snapshot) -> List[str]:
+        if snap.nothing_received and time.monotonic() - self._ips_at > IP_REFRESH:
+            self._ips, self._ips_at = osutil.local_ipv4(), time.monotonic()
+        return self._ips
+
+    def _set_title(self, b: V.Band, snap: Snapshot) -> None:
+        """The verdict in the title, so the taskbar shows it while the window is in the background."""
+        title = f"{'重播 ' if snap.source_kind == 'replay' else ''}{b.word}｜AIO NAV 接收監看 {__version__}"
+        if title != self._title:
+            self._title = title
+            self.root.title(title)
+
+    # ----------------------------------------------------------------- actions
+    def start_live(self) -> None:
+        self.engine.start_live(self.settings)
+
+    def start_replay(self, path: Path, speed: Optional[float] = None) -> None:
+        if speed is not None:
+            self.replay_bar.speed.set(f"{speed:g}×")
+        try:
+            self.engine.start_replay(path, self.settings, self.replay_bar.speed_value)
+        except (OSError, ValueError) as e:
+            messagebox.showerror("無法重播", f"{path}\n\n{e}", parent=self.root)
+
+    def copy_firewall(self) -> None:
+        hint = osutil.firewall_hint(self.settings.ports)
+        if hint.command:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(hint.command)
+            self.guidance.copied.configure(text=osutil.firewall_copied_text())
+
+    def toggle_record(self) -> None:
+        snap = self.engine.snapshot
+        if snap is None or snap.source_kind == "replay":
+            return
+        if snap.recording:
+            self.engine.stop_recording()
+        else:
+            self.engine.start_recording(osutil.record_dir(self.settings.record_dir))
+
+    def open_replay(self) -> None:
+        folder = osutil.record_dir(self.settings.record_dir)
+        path = filedialog.askopenfilename(
+            parent=self.root, title="選擇要重播的記錄檔",
+            initialdir=str(folder if folder.is_dir() else osutil.executable_dir()),
+            filetypes=[("AIO 記錄檔", "*.bin"), ("所有檔案", "*.*")])
+        if path:
+            self.start_replay(Path(path))
+
+    def change_speed(self) -> None:
+        self.engine.set_speed(self.replay_bar.speed_value)
+
+    def toggle_track(self) -> None:
+        if self.show_track.get():
+            self.body.columnconfigure(2, weight=5, uniform="c")
+            self.track.frame.grid()
+        else:
+            self.track.frame.grid_remove()
+            self.body.columnconfigure(2, weight=0, uniform="")
+        self._remember(show_track=self.show_track.get())
+
+    def toggle_alert(self) -> None:
+        self._remember(alert_sound=self.alert.get())
+
+    def _remember(self, **changes: bool) -> None:
+        new = self.settings.replace(**changes)
+        if new != self.settings:
+            self.settings = new
+            try:
+                config.save(new)
+            except OSError as e:
+                log.warning("settings not saved: %s", e)
+
+    def open_settings(self) -> None:
+        SettingsDialog(self.root, self.settings, self.apply_settings)
+
+    def apply_settings(self, new: Settings) -> None:
+        self.settings = new
+        log.info("settings changed: %s", new)
+        self.start_live()
+
+    def warn(self, title: str, lines: List[str]) -> None:
+        self.root.after(300, lambda: messagebox.showwarning(title, "\n".join(lines), parent=self.root))
+
+    def close(self) -> None:
+        self._closing = True
+        self.engine.stop()
+        self.root.destroy()
+
+
+def run(settings: Settings, problems: List[str], replay: Optional[Path] = None, speed: float = 1.0) -> None:
+    osutil.enable_dpi_awareness()
+    root = tk.Tk(className=APP_NAME)
+    T.init_fonts(root)
+    engine = Engine()
+    win = MainWindow(root, engine, settings)
+    if problems:
+        win.warn("設定檔有問題", ["下列設定無效，已改用預設值：", *problems])
+    if replay is not None:
+        win.start_replay(replay, speed)
+    if engine.snapshot is None:
+        win.start_live()
+    win.start()
+    root.mainloop()

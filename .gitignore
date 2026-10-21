@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build output
+build/
+dist/
+
+# Recordings and field data (may contain real positions)
+data/
+logs/
+*.bin
+!tests/fixtures/*.bin.gz
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

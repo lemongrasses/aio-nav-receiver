@@ -1,0 +1,7 @@
+# Same line endings on every OS (CI runs on Windows, Linux and macOS)
+* text=auto eol=lf
+*.bat text eol=crlf
+
+*.png binary
+*.gz binary
+*.bin binary

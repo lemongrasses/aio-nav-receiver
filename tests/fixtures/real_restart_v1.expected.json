@@ -1,0 +1,75 @@
+{
+ "produced_by": "pre-1.0 gate (characterisation)",
+ "usable_s": 8.177138999999897,
+ "count": {
+  "nav": 2393,
+  "status": 94,
+  "lost": 0,
+  "reordered": 0,
+  "bad": 0,
+  "conflicts": 0,
+  "foreign": 0
+ },
+ "transitions": [
+  [
+   1553.0268853,
+   false,
+   "沒有最新的狀態封包 (0x05)"
+  ],
+  [
+   1553.0933106,
+   false,
+   "READY 尚未穩定"
+  ],
+  [
+   1555.0933116,
+   true,
+   "可用"
+  ],
+  [
+   1563.2704506,
+   false,
+   "導航資料太舊 (0x04)"
+  ],
+  [
+   1565.7340809000002,
+   false,
+   "沒有最新的狀態封包 (0x05)"
+  ],
+  [
+   1605.5130429,
+   false,
+   "狀態不是 READY：BOOTING（BOOT_IN_PROGRESS, GNSS_MISSING_OR_STALE, GNSS_QUALITY_LOW, NAV_NOT_RUNNING, KEEP_STILL_REQUIRED, MOVE_STRAIGHT_REQUIRED, FINE_ALIGNMENT_REQUIRED）"
+  ],
+  [
+   1606.5507411,
+   false,
+   "狀態不是 READY：CHECKING（GNSS_MISSING_OR_STALE, GNSS_QUALITY_LOW, NAV_NOT_RUNNING, KEEP_STILL_REQUIRED, MOVE_STRAIGHT_REQUIRED, FINE_ALIGNMENT_REQUIRED）"
+  ],
+  [
+   1632.3288674,
+   false,
+   "狀態不是 READY：CHECKING（GNSS_QUALITY_LOW, NAV_NOT_RUNNING, KEEP_STILL_REQUIRED, MOVE_STRAIGHT_REQUIRED, FINE_ALIGNMENT_REQUIRED）"
+  ],
+  [
+   1639.259167,
+   false,
+   "狀態不是 READY：CHECKING（NAV_NOT_RUNNING, KEEP_STILL_REQUIRED, MOVE_STRAIGHT_REQUIRED, FINE_ALIGNMENT_REQUIRED）"
+  ],
+  [
+   1640.5430864,
+   false,
+   "狀態不是 READY：FAULT（KEEP_STILL_REQUIRED, MOVE_STRAIGHT_REQUIRED, FINE_ALIGNMENT_REQUIRED）"
+  ],
+  [
+   1641.1762332,
+   false,
+   "狀態不是 READY：KEEP_STILL（KEEP_STILL_REQUIRED, MOVE_STRAIGHT_REQUIRED, FINE_ALIGNMENT_REQUIRED）"
+  ],
+  [
+   1648.9664379,
+   false,
+   "狀態不是 READY：MOVE_STRAIGHT（MOVE_STRAIGHT_REQUIRED, FINE_ALIGNMENT_REQUIRED）"
+  ]
+ ]
+}
