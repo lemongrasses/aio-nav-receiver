@@ -123,9 +123,26 @@ Layout:
 | `src/aio_receiver/io/` | `.bin` reader and writer, UDP and replay sources |
 | `src/aio_receiver/engine.py` | the worker thread; publishes snapshots to the window |
 | `src/aio_receiver/ui/` | tkinter window |
-| `tests/fixtures/` | windows of a real 30-minute Jetson session (positions moved to 0°, 0°) with the verdicts the pre-1.0 gate gave |
-| `tools/` | test sender, fixture cutter, parity check against web_monitor's `VehicleGate` |
+| `fixtures/` | shared by the desktop and iOS tests: windows of a real 30-minute Jetson session (positions moved to 0°, 0°) with the verdicts the pre-1.0 gate gave, and `gate_vectors.json` (below) |
+| `tools/` | test sender, fixture cutter, parity check against web_monitor's `VehicleGate`, `make_gate_vectors.py` |
+| `ios/` | the iPhone app (SwiftUI), see [ios/README.md](ios/README.md) |
 | `docs/DESIGN.md` | architecture, time model, failure modes, trade-offs |
+
+## iPhone app
+
+`ios/` holds the same receiver for iPhone (iOS 26): live 可用 / 阻擋 with the operator instruction,
+charts of the last 1–10 minutes, the track on a map, in 繁體中文 and English. It uses the same rules
+as the desktop gate, and both are tested against the same files:
+
+- `fixtures/gate_vectors.json`: a scripted stream (lost, reordered and second-sender 0x05, bad
+  checksums, NaN, time going back, …) with this gate's verdict and counters at every step. Written by
+  `python tools/make_gate_vectors.py`; `tests/test_shared_vectors.py` checks the desktop still
+  produces it, and the iOS tests replay it through `VehicleGate.swift`.
+- `fixtures/real_*.bin.gz`: the iOS tests replay the real recordings with the same deadline timing as
+  `analysis.analyse` and must give every transition in the `.expected.json` files.
+
+After changing a rule here, regenerate the vectors and make `ios/MyApp/Protocol/VehicleGate.swift`
+follow; the `ios` workflow runs the iOS tests when `ios/`, `fixtures/` or the generator change.
 
 ## Release
 

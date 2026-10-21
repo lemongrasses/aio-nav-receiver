@@ -9,7 +9,7 @@ from typing import Any, Dict
 
 from aio_receiver.core import protocol as P
 
-FIXTURES = Path(__file__).parent / "fixtures"
+FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 ALIGNED = 0b1110_0000
 GOLDEN = bytes.fromhex("55aa0524000106000378563412e201000015cd5b0700000000ff0f010000000000e800e8030c0000005c")
 

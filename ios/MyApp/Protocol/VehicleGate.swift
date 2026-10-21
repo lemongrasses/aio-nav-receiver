@@ -2,8 +2,8 @@
 //  VehicleGate.swift
 //  MyApp
 //
-//  When may the 0x04 navigation data be used? A port of web_monitor's
-//  aio_system_dashboard/nav/vehicle_gate.py; keep the two in step.
+//  When may the 0x04 navigation data be used? The same rules as the desktop app's
+//  src/aio_receiver/core/gate.py (the spec); fixtures/gate_vectors.json holds both to it.
 //
 //  1. Blocked by default. A valid 0x05 must have arrived within statusTimeout; a bad checksum,
 //     an unknown version or a new session_id clears the authorisation at once.
@@ -12,6 +12,8 @@
 //  3. The newest 0x04 must be at most navMaxAge old, carry the ALIGN, HEADING and FINE flags,
 //     have a time stamp that moves forward, and only finite values.
 //  4. Sequence numbers count lost and reordered status packets; one lost packet never blocks.
+//     A sequence more than `reorderWindow` behind means two senders in one session: clear,
+//     and start over from that packet. (web_monitor's VehicleGate only ignores it.)
 //
 //  Pure: feed datagrams with their arrival time (a monotonic clock), ask verdict(at:).
 //
@@ -40,8 +42,8 @@ nonisolated struct VehicleGate: Sendable {
         var lost = 0
         /// Older or duplicate status packets within the reorder window; content ignored.
         var reordered = 0
-        /// Status packets more than `reorderWindow` behind: likely a second sender in the
-        /// same session. The reference implementation also ignores their content.
+        /// Status packets more than `reorderWindow` behind: a second sender in the same
+        /// session. Each one clears the authorisation.
         var twoSenders = 0
         var bad = 0
     }
@@ -87,12 +89,13 @@ nonisolated struct VehicleGate: Sendable {
                 if gap == 0 || gap > 0x7FFF_FFFF {
                     if previous.sequence &- s.sequence <= Self.reorderWindow {
                         counters.reordered += 1
-                    } else {
-                        counters.twoSenders += 1
+                        return .status                    // old or duplicate: ignore its content
                     }
-                    return .status                        // old or duplicate: ignore its content
+                    counters.twoSenders += 1
+                    clear()                               // two senders in one session: start over from this one
+                } else {
+                    counters.lost += Int(gap - 1)
                 }
-                counters.lost += Int(gap - 1)
             }
             session = s.sessionID
             status = s
@@ -129,6 +132,22 @@ nonisolated struct VehicleGate: Sendable {
         if !nav.isAligned { return .notAligned }
         if !nav.isFinite { return .notFinite }
         return .usable
+    }
+
+    /// The earliest time after `after` at which the verdict can change without a new packet
+    /// (a timeout or the READY settling time running out).
+    func nextDeadline(after: Double) -> Double? {
+        var times: [Double] = []
+        if status != nil, let statusAt {
+            times.append(statusAt + statusTimeout)
+            if let readySince {
+                times.append(readySince + statusStable)
+            }
+        }
+        if nav != nil, let navAt {
+            times.append(navAt + navMaxAge)
+        }
+        return times.filter { $0 > after }.min()
     }
 
     private mutating func clear() {

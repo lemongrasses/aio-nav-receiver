@@ -3,7 +3,7 @@
 Only latitude and longitude change (by one offset for the whole file, so windows stay aligned), and
 checksums are recomputed; every time, flag and status field is kept, so verdicts are unchanged.
 
-    python tools/make_fixture.py REC.bin --start 550 --end 650 --format v1 -o tests/fixtures/x.bin.gz
+    python tools/make_fixture.py REC.bin --start 550 --end 650 --format v1 -o fixtures/x.bin.gz
     python tools/make_fixture.py ... --expect      also write x.expected.json from the CURRENT gate
 
 The committed .expected.json files were produced by the pre-1.0 gate (characterisation), not by

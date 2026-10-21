@@ -112,7 +112,7 @@ nonisolated struct NavSolution: Equatable, Sendable {
     var mountYaw: Float
 
     init?(bytes: [UInt8]) {
-        guard bytes.count >= AIO.navPacketSize,
+        guard bytes.count == AIO.navPacketSize,
               AIO.isFrame(bytes, id: AIO.navMessageID),
               AIO.frameIsValid(bytes, payloadSize: AIO.navPayloadSize) else { return nil }
         let r = ByteReader(bytes)
@@ -227,7 +227,7 @@ nonisolated struct StatusPacket: Equatable, Sendable {
     var navAgeMs: UInt16
 
     init?(bytes: [UInt8], messageID: UInt8 = AIO.defaultStatusMessageID) {
-        guard bytes.count >= AIO.statusPacketSize,
+        guard bytes.count == AIO.statusPacketSize,
               AIO.isFrame(bytes, id: messageID),
               AIO.frameIsValid(bytes, payloadSize: AIO.statusPayloadSize) else { return nil }
         let r = ByteReader(bytes)
