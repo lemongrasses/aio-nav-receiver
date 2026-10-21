@@ -123,9 +123,10 @@ Layout:
 | `src/aio_receiver/io/` | `.bin` reader and writer, UDP and replay sources |
 | `src/aio_receiver/engine.py` | the worker thread; publishes snapshots to the window |
 | `src/aio_receiver/ui/` | tkinter window |
-| `fixtures/` | shared by the desktop and iOS tests: windows of a real 30-minute Jetson session (positions moved to 0°, 0°) with the verdicts the pre-1.0 gate gave, and `gate_vectors.json` (below) |
+| `fixtures/` | shared by the desktop, iOS and Android tests: windows of a real 30-minute Jetson session (positions moved to 0°, 0°) with the verdicts the pre-1.0 gate gave, and `gate_vectors.json` (below) |
 | `tools/` | test sender, fixture cutter, parity check against web_monitor's `VehicleGate`, `make_gate_vectors.py` |
 | `ios/` | the iPhone app (SwiftUI), see [ios/README.md](ios/README.md) |
+| `android/` | the Android app (Kotlin, Jetpack Compose), see [android/README.md](android/README.md) |
 | `docs/DESIGN.md` | architecture, time model, failure modes, trade-offs |
 
 ## iPhone app
@@ -143,6 +144,23 @@ as the desktop gate, and both are tested against the same files:
 
 After changing a rule here, regenerate the vectors and make `ios/MyApp/Protocol/VehicleGate.swift`
 follow; the `ios` workflow runs the iOS tests when `ios/`, `fixtures/` or the generator change.
+
+## Android app
+
+`android/` holds the same receiver for Android 8.0 or newer (Kotlin, Jetpack Compose): the same
+Status, Charts, Track and Settings screens as the iPhone app, in 繁體中文 and English. Unlike iOS it
+keeps receiving in the background, with 可用 / 阻擋 in an ongoing notification, and it keeps the
+Jetson's no-internet Wi-Fi connected while it receives. Its rules (`android/app/src/main/java/.../core/`,
+pure Kotlin) are held to the desktop gate by the same files: JVM unit tests replay
+`fixtures/gate_vectors.json` step by step and the real recordings with the desktop `Monitor`'s timing.
+
+```
+cd android && ./gradlew assembleDebug testDebugUnitTest
+```
+
+After changing a rule, regenerate the vectors and make `android/.../core/Gate.kt` follow too; the
+`android` workflow runs its tests when `android/`, `fixtures/` or the generator change, and uploads a
+debug APK. See [android/README.md](android/README.md) for the emulator and the phone.
 
 ## Release
 
