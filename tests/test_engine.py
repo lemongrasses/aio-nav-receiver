@@ -47,20 +47,28 @@ def wait_written(events: Path, timeout: float = 5.0) -> str:
 
 
 class Sender:
+    """0x04 at 100 Hz and 0x05 at 20 Hz on a schedule. sleep() is coarse on some machines (about
+    50 ms on CI macOS), so it catches up in bursts rather than sending fewer packets."""
+
     def __init__(self, port: int) -> None:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.dest = ("127.0.0.1", port)
         self.seq, self.t = 0, 1000.0
+        self.sent = 0
 
     def burst(self, seconds: float) -> None:
-        end = time.monotonic() + seconds
-        while time.monotonic() < end:
-            self.seq += 1
-            self.sock.sendto(status(self.seq), self.dest)
-            for _ in range(5):
-                self.t += 0.01
-                self.sock.sendto(nav(self.t), self.dest)
-                time.sleep(0.01)
+        start = time.perf_counter()
+        for i in range(int(seconds * 100)):
+            delay = start + i * 0.01 - time.perf_counter()
+            if delay > 0:
+                time.sleep(delay)
+            if i % 5 == 0:
+                self.seq += 1
+                self.sock.sendto(status(self.seq), self.dest)
+                self.sent += 1
+            self.t += 0.01
+            self.sock.sendto(nav(self.t), self.dest)
+            self.sent += 1
 
     def close(self) -> None:
         self.sock.close()
@@ -99,7 +107,7 @@ def test_recording_writes_a_v2_file(live: tuple, tmp_path: Path) -> None:  # typ
     events = wait_written(Path(f"{base}_events.log"))
     assert "開始記錄" in events and "可用" in events
     with Recording(Path(f"{base}.bin")) as rec:
-        assert rec.version == 2 and len(rec) > 20 and rec[0].sender == "127.0.0.1"
+        assert rec.version == 2 and len(rec) >= 0.95 * sender.sent and rec[0].sender == "127.0.0.1"
         assert rec.header["settings"]["nav_port"] == settings.nav_port
 
 
@@ -137,7 +145,9 @@ def test_slow_storage_does_not_delay_receiving(tmp_path: Path, monkeypatch: pyte
     wait_written(Path(f"{base}_events.log"))
     with Recording(Path(f"{base}.bin")) as rec:
         gaps = [b - a for a, b in zip(rec.times, rec.times[1:])]
-    assert len(gaps) > 150 and max(gaps) < 0.2
+        recorded = len(rec)
+    assert recorded >= 0.95 * sender.sent, (recorded, sender.sent)
+    assert max(gaps) < 0.4, "receive times were held back by the 0.8 s write stall"
 
 
 def test_recording_failure_keeps_monitoring(live: tuple, tmp_path: Path) -> None:  # type: ignore[type-arg]
