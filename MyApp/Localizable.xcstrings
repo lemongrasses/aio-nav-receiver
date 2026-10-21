@@ -1,0 +1,1096 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "0x04 data age": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0x04 資料年齡"
+          }
+        }
+      }
+    },
+    "0x04 packets": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0x04 包數"
+          }
+        }
+      }
+    },
+    "0x04 port": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0x04 埠"
+          }
+        }
+      }
+    },
+    "0x05 message ID": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0x05 message ID"
+          }
+        }
+      }
+    },
+    "0x05 packets": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0x05 包數"
+          }
+        }
+      }
+    },
+    "0x05 port": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0x05 埠"
+          }
+        }
+      }
+    },
+    "1 min": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 分"
+          }
+        }
+      }
+    },
+    "10 min": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "10 分"
+          }
+        }
+      }
+    },
+    "5 min": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 分"
+          }
+        }
+      }
+    },
+    "AIO NAV Monitor": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AIO NAV 監控"
+          }
+        }
+      }
+    },
+    "Accept only source IP": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只接受來源 IP"
+          }
+        }
+      }
+    },
+    "Aiding this epoch": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本 epoch 輔助"
+          }
+        }
+      }
+    },
+    "Alignment": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "對準"
+          }
+        }
+      }
+    },
+    "Another app may be using this port. Change the port in Settings.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可能有其他程式占用此埠，請到「設定」更換埠號。"
+          }
+        }
+      }
+    },
+    "Any": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不限"
+          }
+        }
+      }
+    },
+    "Apply": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "套用"
+          }
+        }
+      }
+    },
+    "Blocked": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阻擋"
+          }
+        }
+      }
+    },
+    "Cannot listen": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法接收"
+          }
+        }
+      }
+    },
+    "Charts": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圖表"
+          }
+        }
+      }
+    },
+    "Check the ports and the source IP address.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請檢查埠號與來源 IP 位址。"
+          }
+        }
+      }
+    },
+    "Clear charts and statistics": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除圖表與統計"
+          }
+        }
+      }
+    },
+    "Dashboard status (0x05)": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard 狀態（0x05）"
+          }
+        }
+      }
+    },
+    "Dashboard uptime": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard 運行時間"
+          }
+        }
+      }
+    },
+    "Data age": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "資料年齡"
+          }
+        }
+      }
+    },
+    "Defaults are 3.0 s, 2.0 s and 0.5 s, the same as web_monitor's VehicleGate. Do not loosen them for real use.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "預設為 3.0 秒、2.0 秒與 0.5 秒，與 web_monitor 的 VehicleGate 相同；實際使用時不可放寬。"
+          }
+        }
+      }
+    },
+    "Display": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示"
+          }
+        }
+      }
+    },
+    "Drive straight at a steady speed in a safe, open area.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在安全空曠處等速直線行駛。"
+          }
+        }
+      }
+    },
+    "End": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "結束"
+          }
+        }
+      }
+    },
+    "Follow vehicle": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟隨車輛"
+          }
+        }
+      }
+    },
+    "GNSS quality": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GNSS 品質"
+          }
+        }
+      }
+    },
+    "Gate": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "判斷"
+          }
+        }
+      }
+    },
+    "Heading": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "航向"
+          }
+        }
+      }
+    },
+    "Heading σ": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "航向 σ"
+          }
+        }
+      }
+    },
+    "Health": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health"
+          }
+        }
+      }
+    },
+    "Height": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高度"
+          }
+        }
+      }
+    },
+    "Hz": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hz"
+          }
+        }
+      }
+    },
+    "Inhibit": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inhibit"
+          }
+        }
+      }
+    },
+    "Invalid": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無效"
+          }
+        }
+      }
+    },
+    "Keep driving normally with GNSS available.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在有 GNSS 的地方繼續正常行駛。"
+          }
+        }
+      }
+    },
+    "Keep screen on": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持螢幕開啟"
+          }
+        }
+      }
+    },
+    "Keep the vehicle completely still.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "車輛保持完全靜止。"
+          }
+        }
+      }
+    },
+    "Lane": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列"
+          }
+        }
+      }
+    },
+    "Last sender": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最後發送者"
+          }
+        }
+      }
+    },
+    "Latitude": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "緯度"
+          }
+        }
+      }
+    },
+    "Limit": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上限"
+          }
+        }
+      }
+    },
+    "Listening on UDP port": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收中，UDP 埠"
+          }
+        }
+      }
+    },
+    "Longitude": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "經度"
+          }
+        }
+      }
+    },
+    "Lost 0x05": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0x05 遺失"
+          }
+        }
+      }
+    },
+    "Maintenance is needed.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要維護。"
+          }
+        }
+      }
+    },
+    "Max navigation age": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "導航最大年齡"
+          }
+        }
+      }
+    },
+    "Motion": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "運動"
+          }
+        }
+      }
+    },
+    "Nav age (dashboard)": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "導航年齡（dashboard）"
+          }
+        }
+      }
+    },
+    "Nav rate (dashboard)": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "導航頻率（dashboard）"
+          }
+        }
+      }
+    },
+    "Navigation (0x04)": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "導航（0x04）"
+          }
+        }
+      }
+    },
+    "Navigation data not finite": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "導航資料不是有限值"
+          }
+        }
+      }
+    },
+    "Navigation data too old": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "導航資料太舊"
+          }
+        }
+      }
+    },
+    "Navigation flags not aligned": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "導航旗標未對準"
+          }
+        }
+      }
+    },
+    "Navigation quality": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "導航品質"
+          }
+        }
+      }
+    },
+    "Navigation time did not move forward": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "導航時間沒有往前"
+          }
+        }
+      }
+    },
+    "No": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "否"
+          }
+        }
+      }
+    },
+    "No 0x04 navigation packets yet.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未收到 0x04 導航封包。"
+          }
+        }
+      }
+    },
+    "No current position.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有目前位置。"
+          }
+        }
+      }
+    },
+    "No current status packet": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有最新的狀態封包"
+          }
+        }
+      }
+    },
+    "No data in this window.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這段時間沒有資料。"
+          }
+        }
+      }
+    },
+    "No valid 0x05 status packet.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有有效的 0x05 狀態封包。"
+          }
+        }
+      }
+    },
+    "Not connected to a network.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未連上網路。"
+          }
+        }
+      }
+    },
+    "On the device, open Maintenance → AIO NAV config, set output_udp to this iPhone's address and the 0x04 port, then restart AIO NAV. output_udp has only one destination, so the iPhone then replaces any other receiver.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在裝置的 Maintenance → AIO NAV config 把 output_udp 設成這支 iPhone 的位址與 0x04 埠，存檔後重啟 AIO NAV。output_udp 只有一個目的地，設定後 iPhone 會取代原本的接收端。"
+          }
+        }
+      }
+    },
+    "Other sources": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他來源"
+          }
+        }
+      }
+    },
+    "Out of order": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "順序錯亂"
+          }
+        }
+      }
+    },
+    "Position σ": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置 σ"
+          }
+        }
+      }
+    },
+    "Position σ N / E / D": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置 σ 北 / 東 / 下"
+          }
+        }
+      }
+    },
+    "READY not yet stable": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "READY 尚未穩定"
+          }
+        }
+      }
+    },
+    "READY stable time": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "READY 穩定時間"
+          }
+        }
+      }
+    },
+    "Receive rate": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收頻率"
+          }
+        }
+      }
+    },
+    "Receiving": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收"
+          }
+        }
+      }
+    },
+    "Requested action": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要求的動作"
+          }
+        }
+      }
+    },
+    "Restore defaults": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢復預設值"
+          }
+        }
+      }
+    },
+    "Roll / pitch": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roll / pitch"
+          }
+        }
+      }
+    },
+    "Rules": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "判斷規則"
+          }
+        }
+      }
+    },
+    "Run": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "段"
+          }
+        }
+      }
+    },
+    "Separate 0x05 port": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0x05 用另一個埠"
+          }
+        }
+      }
+    },
+    "Sequence": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sequence"
+          }
+        }
+      }
+    },
+    "Series": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "數列"
+          }
+        }
+      }
+    },
+    "Session": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定"
+          }
+        }
+      }
+    },
+    "Speed": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "速度"
+          }
+        }
+      }
+    },
+    "Start": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開始"
+          }
+        }
+      }
+    },
+    "State": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "狀態"
+          }
+        }
+      }
+    },
+    "Statistics": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "統計"
+          }
+        }
+      }
+    },
+    "Status": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "狀態"
+          }
+        }
+      }
+    },
+    "Status age": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "狀態年齡"
+          }
+        }
+      }
+    },
+    "Status not READY": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "狀態不是 READY"
+          }
+        }
+      }
+    },
+    "Status timeline": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "狀態時間軸"
+          }
+        }
+      }
+    },
+    "Status timeout": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "狀態逾時"
+          }
+        }
+      }
+    },
+    "Stop using navigation and follow the vehicle's safety procedure.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止使用導航，依車輛安全程序處理。"
+          }
+        }
+      }
+    },
+    "Stopped. Press Start to resume.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止，按「恢復」後繼續。"
+          }
+        }
+      }
+    },
+    "This iPhone": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這支 iPhone"
+          }
+        }
+      }
+    },
+    "Time": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "時間"
+          }
+        }
+      }
+    },
+    "Time usable": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累計可用時間"
+          }
+        }
+      }
+    },
+    "Track": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "軌跡"
+          }
+        }
+      }
+    },
+    "Two senders": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兩個發送者"
+          }
+        }
+      }
+    },
+    "UDP has no authentication: anyone who can reach this port can fake READY. Enter the device's IP so packets from other sources are only counted.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UDP 沒有驗證，任何能送到這個埠的人都能偽造 READY。請填入裝置的 IP，其他來源的封包只計數、不處理。"
+          }
+        }
+      }
+    },
+    "Usable": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用"
+          }
+        }
+      }
+    },
+    "Value": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "值"
+          }
+        }
+      }
+    },
+    "Vehicle": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "車輛"
+          }
+        }
+      }
+    },
+    "Window": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "時間範圍"
+          }
+        }
+      }
+    },
+    "Yes": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
+          }
+        }
+      }
+    },
+    "iOS pauses apps in the background, so monitoring only runs while this app is on screen.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 會暫停背景中的 App，所以只有在本 App 顯示於螢幕上時才會監控。"
+          }
+        }
+      }
+    },
+    "ms": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ms"
+          }
+        }
+      }
+    }
+  }
+}

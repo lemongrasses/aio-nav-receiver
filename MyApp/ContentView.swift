@@ -6,32 +6,25 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var count = 0
-
     var body: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "swift")
-                .font(.system(size: 64))
-                .foregroundStyle(.tint)
-
-            Text("Hello, MyApp!")
-                .font(.largeTitle.bold())
-
-            Text("Tapped \(count) times")
-                .font(.title3)
-                .monospacedDigit()
-                .contentTransition(.numericText())
-
-            Button("Tap me") {
-                withAnimation { count += 1 }
+        TabView {
+            Tab("Status", systemImage: "gauge.with.dots.needle.67percent") {
+                StatusView()
             }
-            .buttonStyle(.glassProminent)
-            .controlSize(.large)
+            Tab("Charts", systemImage: "chart.xyaxis.line") {
+                ChartsView()
+            }
+            Tab("Track", systemImage: "map") {
+                TrackMapView()
+            }
+            Tab("Settings", systemImage: "gearshape") {
+                SettingsView()
+            }
         }
-        .padding()
     }
 }
 
 #Preview {
     ContentView()
+        .environment(MonitorStore())
 }
