@@ -18,8 +18,15 @@ Android 8.0 (API 26) or newer.
   service (type `connectedDevice`) shows 可用 / 阻擋 in an ongoing green / red notification; its **Stop**
   button ends it. Turn off "Keep receiving in the background" to receive only while the app is on screen.
 
-The UI follows the phone's language: 繁體中文 (`res/values-zh-rTW`) or English (`res/values`), with the
-texts the iPhone app uses (`ios/MyApp/Localizable.xcstrings`).
+**Language:** one language at a time, 繁體中文 (`res/values-zh-rTW`) or English (`res/values`), like the
+desktop app since 1.2.0. It follows the phone until you choose one in **設定 / Settings → 顯示 / Display →
+語言 / Language** (跟隨系統 / 繁體中文 / English); the change applies at once and does not restart receiving
+(on Android 13+ it is also under the phone's Settings → Apps → AIO NAV Monitor → Language). Protocol codes
+are shown as words, with the desktop's wording (`src/aio_receiver/i18n.py`): READY → 就緒 / Ready,
+KEEP_STILL_REQUIRED → 需要保持靜止 / Must keep still, the 18 health and 18 blocking conditions, GNSS quality,
+the alignment lamps. Acronyms (GNSS, ZUPT, NHC), units and packet ids (0x04) stay as they are.
+
+Version 1.2.0 (`versionName` in `app/build.gradle.kts`), the same as the desktop app.
 
 ## Code
 
@@ -28,7 +35,8 @@ texts the iPhone app uses (`ios/MyApp/Localizable.xcstrings`).
 | `app/src/main/java/.../core/` | Pure Kotlin, no Android imports: 0x04 / 0x05 decoders (`Protocol.kt`), the gate (`Gate.kt`), the desktop's time-ordered `Monitor`, the `.bin` reader, track helpers |
 | `app/src/main/java/.../monitor/` | UDP receiver threads, the store (gate behind a lock, 100 ms snapshot, 10 min history), settings, the foreground service, Wi-Fi keeper |
 | `app/src/main/java/.../ui/` | Compose screens; charts and the track are drawn with Canvas |
-| `app/src/test/` | JVM unit tests against the shared `../fixtures` |
+| `app/src/main/res/values*/strings.xml` | Every user-visible text in English and 繁體中文, including the protocol vocabulary (string-arrays) |
+| `app/src/test/` | JVM unit tests against the shared `../fixtures`, and the string tables |
 
 The live app uses the same `Monitor` as the tests: the verdict is evaluated at every packet and just
 after every gate deadline, so the usable time and the transition times do not depend on the 100 ms
@@ -58,7 +66,11 @@ The unit tests run on the JVM, no device needed. They hold this port to the desk
   timing; every transition time (±1e-9 s), its desktop reason text, the usable total (±1e-6 s) and all
   counters must match the `.expected.json`;
 - the decoders against the golden 0x05 and a 0x04 from the desktop encoder (and the encoders back);
-- `core/` stays free of Android imports.
+- `core/` stays free of Android imports;
+- both languages hold the same texts with the same arguments and a word for every protocol code; English
+  has no Chinese; no raw protocol code (KEEP_STILL_REQUIRED) is shown on screen. The recordings' reason text
+  is compared as the pre-1.0 sentence rebuilt from the codes (`Verdict.legacyText`, the desktop's
+  `legacy_text`), so the fixtures stay valid whatever the display language.
 
 After changing a rule in the desktop gate, regenerate the vectors (`python tools/make_gate_vectors.py`)
 and make `core/Gate.kt` follow; the `android` workflow runs these tests when `android/`, `fixtures/` or
@@ -90,10 +102,36 @@ every 55 s. In the emulator the packets arrive from `10.0.2.2`.
 4. In the app, enter the Jetson's address as the phone sees it (usually `10.42.0.1`) under "Accept only
    source IP", then Apply. Allow notifications when asked, so the background 可用 / 阻擋 shows.
 
-To install on a phone: turn on Developer options → USB debugging, connect it, then
-`adb install -r app/build/outputs/apk/debug/app-debug.apk` (or download the APK artifact from the
-`android` workflow run and open it on the phone).
+To install on a phone: download `AIO_NAV_Monitor-android-<version>.apk` from the GitHub Release and open
+it on the phone (allow "Install unknown apps" for the browser or file manager when Android asks). Or turn
+on Developer options → USB debugging, connect it, and `adb install -r <apk>`. A debug build and a release
+build are signed with different keys: uninstall one before installing the other.
 
 Battery: while it runs, the service holds a partial wake lock and a Wi-Fi lock so 100 Hz keeps arriving
 with the screen off. Stop it from the notification when done. Some phone makers stop background apps
 anyway; if monitoring stops with the screen off, set the app's battery use to "Unrestricted".
+
+## Release and signing
+
+Release APKs are signed with the project's release key (`CN=AIO NAV Receiver, O=lemongrass, C=TW`,
+certificate SHA-256 `4e:e6:a3:49:19:d7:61:a4:7e:1b:57:b1:c0:9d:9e:10:1f:6d:67:f9:b0:a9:28:a6:98:ef:cc:61:32:81:7e:94`).
+Android only installs an update signed with the same key, so **every release must use this keystore;
+if it is lost, installed copies can no longer be updated** (they have to be uninstalled first).
+
+- **The keystore is never in the repository.** The original is on the release Mac in
+  `~/.android-release/aio-nav-receiver/` (`aionav-release.jks` and `keystore.properties` with the
+  passwords, readable only by the owner). Keep a backup of both files somewhere safe, such as a password
+  manager.
+- **CI** gets it from four repository secrets: `AIONAV_KEYSTORE_BASE64` (the .jks, base64),
+  `AIONAV_KEYSTORE_PASSWORD`, `AIONAV_KEY_ALIAS` (`aionav`) and `AIONAV_KEY_PASSWORD`. The `android` workflow
+  builds the signed APK whenever the secrets are available, checks it carries the certificate above, and
+  uploads it as the `aio-nav-monitor-release-apk` artifact.
+- **Publishing:** push a `v*` tag. The `android` workflow waits for the `ci` workflow to create that GitHub
+  Release, then attaches `AIO_NAV_Monitor-android-<versionName>.apk`. To attach it to a release that already
+  exists, run the `android` workflow by hand (Actions → android → Run workflow) with `release_tag` set, for
+  example `v1.2.0`. Bump `versionName` and `versionCode` (major × 10000 + minor × 100 + patch) first: Android
+  does not install an update with a lower or equal `versionCode`.
+- **On the Mac:** `~/.gradle/gradle.properties` has `aionav.signing=<path to keystore.properties>`, so
+  `./gradlew assembleRelease` writes a signed `app/build/outputs/apk/release/app-release.apk`. Without that
+  property (or the CI variables), the release APK is left unsigned. Check a signature with
+  `$ANDROID_HOME/build-tools/36.0.0/apksigner verify --print-certs <apk>`.

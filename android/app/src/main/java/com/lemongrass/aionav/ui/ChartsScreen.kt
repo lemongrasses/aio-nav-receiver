@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -97,7 +98,8 @@ fun ChartsScreen(history: History, navMaxAge: Double) {
                 colors = { StateColors[it] ?: Color.Gray }, start = start, end = now,
             )
             val shown = visible.map { it.state }.toSet() + setOf("USABLE", "BLOCKED")
-            Legend(StateColors.filterKeys { it in shown }.map { it.key to it.value })
+            val res = LocalResources.current
+            Legend(StateColors.filterKeys { it in shown }.map { Words.stateByName(res, it.key) to it.value })
         }
 
         SectionTitle(R.string.section_quality)

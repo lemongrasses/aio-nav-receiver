@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -68,6 +69,7 @@ fun StatusScreen(
 
 @Composable
 fun VerdictBanner(snapshot: MonitorSnapshot) {
+    val res = LocalResources.current
     val usable = snapshot.verdict.usable
     val color by animateColorAsState(if (usable) UsableGreen else BlockedRed, label = "banner")
     Column(
@@ -82,25 +84,24 @@ fun VerdictBanner(snapshot: MonitorSnapshot) {
                 fontWeight = FontWeight.Bold, color = Color.White)
             Spacer(Modifier.weight(1f))
             snapshot.status?.let {
-                Text(it.stateName,
+                Text(Words.state(res, it.state),
                     Modifier.background(Color.White.copy(alpha = 0.22f), RoundedCornerShape(50))
                         .padding(horizontal = 10.dp, vertical = 5.dp),
-                    fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold, color = Color.White,
-                    style = MaterialTheme.typography.labelLarge)
+                    fontWeight = FontWeight.SemiBold, color = Color.White, style = MaterialTheme.typography.labelLarge)
             }
         }
         if (!usable) {
-            Text(stringResource(reasonTitle(snapshot.verdict.reason)), style = MaterialTheme.typography.titleLarge,
+            Text(Words.reason(res, snapshot.verdict), style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold, color = Color.White)
-            verdictDetail(snapshot.verdict)?.let {
-                Text(it, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, color = Color.White)
+            Words.reasonDetail(res, snapshot.verdict)?.let {
+                Text(it, style = MaterialTheme.typography.bodyMedium, color = Color.White)
             }
         }
-        snapshot.status?.let { actionText(it.action) }?.let {
+        snapshot.status?.let { Words.instruction(res, it.action) }?.let {
             Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.Person, null, tint = Color.White)
                 Spacer(Modifier.width(8.dp))
-                Text(stringResource(it), style = MaterialTheme.typography.titleMedium, color = Color.White)
+                Text(it, style = MaterialTheme.typography.titleMedium, color = Color.White)
             }
         }
     }
@@ -108,6 +109,7 @@ fun VerdictBanner(snapshot: MonitorSnapshot) {
 
 @Composable
 private fun NavigationCard(snapshot: MonitorSnapshot) {
+    val res = LocalResources.current
     Card(stringResource(R.string.card_nav)) {
         val n = snapshot.nav
         if (n == null) {
@@ -127,7 +129,7 @@ private fun NavigationCard(snapshot: MonitorSnapshot) {
         InfoRow(R.string.receive_rate, Format.number(snapshot.navRateHz, 1, "Hz"))
         HorizontalDivider()
         SubTitle(R.string.alignment)
-        ChipRow { Aio.ALIGNMENT_FLAGS.forEach { Chip(it, on = n.hasFlag(it)) } }
+        ChipRow { Aio.ALIGNMENT_FLAGS.forEach { Chip(Words.lamp(res, it), on = n.hasFlag(it)) } }
         SubTitle(R.string.aiding)
         ChipRow { Aio.AIDING_FLAGS.forEach { Chip(it, tint = InfoBlue, on = n.hasFlag(it)) } }
     }
@@ -135,15 +137,16 @@ private fun NavigationCard(snapshot: MonitorSnapshot) {
 
 @Composable
 private fun StatusPacketCard(snapshot: MonitorSnapshot) {
+    val res = LocalResources.current
     Card(stringResource(R.string.card_status)) {
         val s = snapshot.status
         if (s == null) {
             Text(stringResource(R.string.no_status), color = MaterialTheme.colorScheme.onSurfaceVariant)
             return@Card
         }
-        InfoRow(R.string.state, s.stateName)
-        InfoRow(R.string.requested_action, s.actionName)
-        InfoRow(R.string.gnss_quality, s.gnssQualityName)
+        InfoRow(R.string.state, Words.state(res, s.state))
+        InfoRow(R.string.requested_action, Words.action(res, s.action))
+        InfoRow(R.string.gnss_quality, Words.gnssQuality(res, s.gnssQuality))
         InfoRow(R.string.session, String.format(Locale.ROOT, "0x%08X", s.session))
         InfoRow(R.string.sequence, "${s.sequence}")
         InfoRow(R.string.uptime, Format.duration(s.uptimeMs.toULong().toDouble() / 1000))
@@ -152,9 +155,10 @@ private fun StatusPacketCard(snapshot: MonitorSnapshot) {
         InfoRow(R.string.status_age, snapshot.statusAge?.let { Format.number(it, 1, "s") } ?: "—")
         HorizontalDivider()
         SubTitle(R.string.inhibit)
-        if (s.inhibitNames.isEmpty()) Text("—") else ChipRow { s.inhibitNames.forEach { Chip(it, tint = BlockedRed) } }
+        val inhibit = Words.inhibitList(res, s.inhibit)
+        if (inhibit.isEmpty()) Text(stringResource(R.string.none)) else ChipRow { inhibit.forEach { Chip(it, tint = BlockedRed) } }
         SubTitle(R.string.health)
-        ChipRow { s.healthNames.forEach { Chip(it) } }
+        ChipRow { Words.healthList(res, s.health).forEach { Chip(it) } }
     }
 }
 

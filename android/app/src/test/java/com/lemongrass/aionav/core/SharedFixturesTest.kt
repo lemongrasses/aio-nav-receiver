@@ -249,7 +249,7 @@ class RealRecordingTest {
             val t = row.getDouble(0)
             assertEquals("t=$t", t, got[i].t, 1e-9)
             assertEquals("t=$t", row.getBoolean(1), got[i].verdict.usable)
-            assertEquals("t=$t", row.getString(2), got[i].verdict.desktopText)
+            assertEquals("t=$t", row.getString(2), got[i].verdict.legacyText)
         }
         assertEquals(expected.getDouble("usable_s"), mon.usableTotal, 1e-6)
         val c = expected.getJSONObject("count")

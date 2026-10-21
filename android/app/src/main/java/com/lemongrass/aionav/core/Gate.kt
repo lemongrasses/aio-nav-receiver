@@ -22,8 +22,12 @@ enum class Reason {
 data class Verdict(val reason: Reason, val state: Int? = null, val inhibit: Long = 0) {
     val usable: Boolean get() = reason == Reason.USABLE
 
-    /** The desktop's Verdict.text, which its logs and the .expected.json files record. */
-    val desktopText: String
+    /**
+     * The sentence the pre-1.0 desktop gate printed for this verdict, rebuilt from its codes (the desktop's
+     * tests/helpers.py legacy_text), so the .expected.json characterisation fixtures stay comparable. Not shown
+     * on screen: the screen uses the words in res/values*.
+     */
+    val legacyText: String
         get() = when (reason) {
             Reason.USABLE -> "可用"
             Reason.NO_STATUS -> "沒有最新的狀態封包 (0x05)"

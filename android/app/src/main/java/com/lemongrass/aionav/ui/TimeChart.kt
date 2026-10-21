@@ -216,7 +216,7 @@ fun Legend(items: List<Pair<String, Color>>) {
         items.forEach { (name, color) ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(10.dp).background(color, RoundedCornerShape(2.dp)))
-                Text(" $name", style = MaterialTheme.typography.labelSmall, fontFamily = FontFamily.Monospace)
+                Text(" $name", style = MaterialTheme.typography.labelSmall)
             }
         }
     }

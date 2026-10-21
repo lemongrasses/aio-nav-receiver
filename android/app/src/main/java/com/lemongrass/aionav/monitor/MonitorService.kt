@@ -9,18 +9,20 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.content.res.Configuration
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
+import android.os.LocaleList
 import android.os.PowerManager
 import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.lemongrass.aionav.MainActivity
 import com.lemongrass.aionav.R
-import com.lemongrass.aionav.ui.actionText
-import com.lemongrass.aionav.ui.reasonTitle
+import com.lemongrass.aionav.ui.Words
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -49,6 +51,10 @@ class MonitorService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        if (intent?.action == ACTION_REFRESH && started) {      // the language changed
+            getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(MonitorStore.snapshot.value))
+            return START_STICKY
+        }
         MonitorStore.init(this)
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification(MonitorStore.snapshot.value),
             if (Build.VERSION.SDK_INT >= 29) ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE else 0)
@@ -61,10 +67,10 @@ class MonitorService : Service() {
             scope.launch {
                 // Re-post only when what the notification says changes.
                 MonitorStore.snapshot
-                    .map { Triple(it.verdict, it.status?.stateName, it.status?.action) }
+                    .map { Triple(it.verdict, it.status?.state, it.status?.action) }
                     .distinctUntilChanged()
                     .collect { (verdict, state, _) ->
-                        Log.i(TAG, "verdict ${verdict.desktopText} (state ${state ?: "-"})")
+                        Log.i(TAG, "verdict ${verdict.reason} ${verdict.legacyText} (state ${state ?: "-"})")
                         nm.notify(NOTIFICATION_ID, notification(MonitorStore.snapshot.value))
                     }
             }
@@ -90,18 +96,30 @@ class MonitorService : Service() {
             .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "aionav:monitor").apply { acquire() }
     }
 
+    /** This context in the language chosen in Settings (before Android 13 a service does not get it by itself). */
+    private fun localized(): Context {
+        val chosen = AppCompatDelegate.getApplicationLocales()
+        if (chosen.isEmpty) return this
+        val config = Configuration(resources.configuration)
+        config.setLocales(LocaleList.forLanguageTags(chosen.toLanguageTags()))
+        return createConfigurationContext(config)
+    }
+
     private fun notification(snap: MonitorSnapshot): Notification {
         ensureChannel(this)
+        val ctx = localized()
+        val res = ctx.resources
         val usable = snap.verdict.usable
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_IMMUTABLE)
         val stop = PendingIntent.getService(this, 1, Intent(this, MonitorService::class.java).setAction(ACTION_STOP),
             PendingIntent.FLAG_IMMUTABLE)
-        val title = getString(if (usable) R.string.usable else R.string.blocked) +
-            (snap.status?.let { " · ${it.stateName}" } ?: "")
+        val title = res.getString(if (usable) R.string.usable else R.string.blocked) +
+            (snap.status?.let { " · ${Words.state(res, it.state)}" } ?: "")
         val lines = listOfNotNull(
-            if (usable) null else getString(reasonTitle(snap.verdict.reason)),
-            snap.status?.let { actionText(it.action) }?.let(::getString),
+            if (usable) null else Words.reason(res, snap.verdict),
+            Words.reasonDetail(res, snap.verdict),
+            snap.status?.let { Words.instruction(res, it.action) },
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(if (usable) R.drawable.ic_stat_usable else R.drawable.ic_stat_blocked)
@@ -116,7 +134,7 @@ class MonitorService : Service() {
             .setCategory(NotificationCompat.CATEGORY_STATUS)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentIntent(open)
-            .addAction(0, getString(R.string.stop_monitoring), stop)
+            .addAction(0, res.getString(R.string.stop_monitoring), stop)
             .build()
     }
 
@@ -125,9 +143,17 @@ class MonitorService : Service() {
         private const val CHANNEL_ID = "monitor"
         private const val NOTIFICATION_ID = 1
         private const val ACTION_STOP = "com.lemongrass.aionav.STOP"
+        private const val ACTION_REFRESH = "com.lemongrass.aionav.REFRESH"
 
         fun start(context: Context) {
             ContextCompat.startForegroundService(context, Intent(context, MonitorService::class.java))
+        }
+
+        /** Re-post the notification, e.g. in a newly chosen language (only if the service runs). */
+        fun refresh(context: Context) {
+            if (MonitorStore.isRunning) {
+                context.startService(Intent(context, MonitorService::class.java).setAction(ACTION_REFRESH))
+            }
         }
 
         fun stop(context: Context) {

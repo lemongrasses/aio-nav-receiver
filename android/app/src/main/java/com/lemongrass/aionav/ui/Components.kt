@@ -28,10 +28,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.lemongrass.aionav.R
-import com.lemongrass.aionav.core.Aio
-import com.lemongrass.aionav.core.Reason
-import com.lemongrass.aionav.core.Verdict
 import java.util.Locale
 
 val UsableGreen = Color(0xFF2E7D32)
@@ -43,38 +39,6 @@ val WarningOrange = Color(0xFFE65100)
 fun AioTheme(content: @Composable () -> Unit) {
     val colors = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()
     MaterialTheme(colorScheme = colors, content = content)
-}
-
-/** Reason shown when blocked, in the order the rules are checked. */
-@StringRes
-fun reasonTitle(reason: Reason): Int = when (reason) {
-    Reason.USABLE -> R.string.reason_usable
-    Reason.NO_STATUS -> R.string.reason_no_status
-    Reason.NOT_READY -> R.string.reason_not_ready
-    Reason.READY_NOT_STABLE -> R.string.reason_ready_not_stable
-    Reason.NAV_STALE -> R.string.reason_nav_stale
-    Reason.NAV_TIME_NOT_FORWARD -> R.string.reason_nav_time
-    Reason.NAV_NOT_ALIGNED -> R.string.reason_not_aligned
-    Reason.NAV_NOT_FINITE -> R.string.reason_not_finite
-}
-
-/** For "not READY": the state and the inhibit bit names. */
-fun verdictDetail(v: Verdict): String? {
-    if (v.reason != Reason.NOT_READY) return null
-    val names = Aio.bitNames(v.inhibit, Aio.INHIBIT_BITS)
-    return Aio.nameOf(v.state ?: 0, Aio.STATES) + " · inhibit " + names.ifEmpty { listOf("0") }.joinToString(", ")
-}
-
-/** What the operator should do (readiness ACTION_TEXT); null for NONE or an unknown code. */
-@StringRes
-fun actionText(action: Int): Int? = when (Aio.ACTIONS.getOrNull(action)) {
-    "HOLD_STILL" -> R.string.action_hold_still
-    "DRIVE_STRAIGHT" -> R.string.action_drive_straight
-    "KEEP_DRIVING" -> R.string.action_keep_driving
-    "SAFE_STOP" -> R.string.action_safe_stop
-    "SERVICE_REQUIRED" -> R.string.action_service_required
-    "MAINTENANCE_HOLD" -> R.string.action_maintenance_hold
-    else -> null
 }
 
 object Format {
@@ -130,8 +94,7 @@ fun Chip(text: String, tint: Color = UsableGreen, on: Boolean = true) {
         modifier = Modifier
             .background(if (on) tint else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50))
             .padding(horizontal = 8.dp, vertical = 4.dp),
-        style = MaterialTheme.typography.labelSmall,
-        fontFamily = FontFamily.Monospace,
+        style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.SemiBold,
         color = if (on) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
     )

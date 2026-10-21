@@ -1,6 +1,7 @@
 package com.lemongrass.aionav.ui
 
 import androidx.annotation.StringRes
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,12 +37,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.os.LocaleListCompat
 import com.lemongrass.aionav.R
+import com.lemongrass.aionav.monitor.MonitorService
 import com.lemongrass.aionav.monitor.MonitorSettings
 import com.lemongrass.aionav.monitor.WifiState
 import java.util.Locale
@@ -128,6 +135,7 @@ fun SettingsScreen(
             SwitchRow(R.string.keep_screen_on, draft.keepScreenOn) { draft = draft.copy(keepScreenOn = it) }
             SwitchRow(R.string.background, draft.background) { draft = draft.copy(background = it) }
             Footer(R.string.display_footer)
+            LanguageRow()
             if (notificationsOff) {
                 Text(stringResource(R.string.notifications_off), style = MaterialTheme.typography.bodySmall, color = WarningOrange)
             }
@@ -150,6 +158,36 @@ fun SettingsScreen(
             if (!valid) {
                 Text(stringResource(R.string.check_settings), color = BlockedRed, style = MaterialTheme.typography.bodySmall)
             }
+        }
+    }
+}
+
+/**
+ * Follow system / 繁體中文 / English, like the desktop's Settings → Display → Language. Applies at once (the
+ * screen is redrawn in the new language) and never restarts receiving.
+ */
+@Composable
+private fun LanguageRow() {
+    val context = LocalContext.current
+    val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+    val options = listOf("" to R.string.language_system, "zh-TW" to R.string.language_zh, "en" to R.string.language_en)
+    val selected = when {
+        current.startsWith("zh") -> "zh-TW"
+        current.startsWith("en") -> "en"
+        else -> ""
+    }
+    Text(stringResource(R.string.language))
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+        options.forEachIndexed { i, (tag, label) ->
+            SegmentedButton(
+                selected = selected == tag,
+                onClick = {
+                    AppCompatDelegate.setApplicationLocales(
+                        if (tag.isEmpty()) LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(tag))
+                    MonitorService.refresh(context)
+                },
+                shape = SegmentedButtonDefaults.itemShape(i, options.size),
+            ) { Text(stringResource(label), maxLines = 1) }
         }
     }
 }

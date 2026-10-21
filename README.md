@@ -152,7 +152,9 @@ follow; the `ios` workflow runs the iOS tests when `ios/`, `fixtures/` or the ge
 ## Android app
 
 `android/` holds the same receiver for Android 8.0 or newer (Kotlin, Jetpack Compose): the same
-Status, Charts, Track and Settings screens as the iPhone app, in 繁體中文 and English. Unlike iOS it
+Status, Charts, Track and Settings screens as the iPhone app, one language at a time (繁體中文 or English,
+chosen in Settings, with the desktop's wording). Releases carry a signed APK
+(`AIO_NAV_Monitor-android-<version>.apk`). Unlike iOS it
 keeps receiving in the background, with 可用 / 阻擋 in an ongoing notification, and it keeps the
 Jetson's no-internet Wi-Fi connected while it receives. Its rules (`android/app/src/main/java/.../core/`,
 pure Kotlin) are held to the desktop gate by the same files: JVM unit tests replay
@@ -164,7 +166,8 @@ cd android && ./gradlew assembleDebug testDebugUnitTest
 
 After changing a rule, regenerate the vectors and make `android/.../core/Gate.kt` follow too; the
 `android` workflow runs its tests when `android/`, `fixtures/` or the generator change, and uploads a
-debug APK. See [android/README.md](android/README.md) for the emulator and the phone.
+debug APK; on a `v*` tag it attaches the signed release APK to the GitHub Release. See
+[android/README.md](android/README.md) for the emulator, the phone and the release key.
 
 ## Release
 
