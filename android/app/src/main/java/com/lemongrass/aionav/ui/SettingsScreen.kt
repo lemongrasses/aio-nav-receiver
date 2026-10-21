@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.os.LocaleListCompat
 import com.lemongrass.aionav.R
 import com.lemongrass.aionav.monitor.MonitorService
@@ -95,6 +96,7 @@ fun SettingsScreen(
             }))
             ValueRow(stringResource(R.string.receiving), stringResource(if (listening) R.string.yes else R.string.no),
                 color = if (listening) UsableGreen else BlockedRed)
+            ValueRow(stringResource(R.string.version), appVersion())
             Footer(R.string.this_phone_footer)
         }
 
@@ -189,6 +191,16 @@ private fun LanguageRow() {
                 shape = SegmentedButtonDefaults.itemShape(i, options.size),
             ) { Text(stringResource(label), maxLines = 1) }
         }
+    }
+}
+
+/** versionName (versionCode), e.g. 1.2.0 (10200). */
+@Composable
+private fun appVersion(): String {
+    val context = LocalContext.current
+    return remember {
+        val info = context.packageManager.getPackageInfo(context.packageName, 0)
+        "${info.versionName} (${PackageInfoCompat.getLongVersionCode(info)})"
     }
 }
 

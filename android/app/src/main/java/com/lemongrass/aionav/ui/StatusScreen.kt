@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.lemongrass.aionav.R
 import com.lemongrass.aionav.core.Aio
+import com.lemongrass.aionav.monitor.ListenFailure
 import com.lemongrass.aionav.monitor.MonitorSettings
 import com.lemongrass.aionav.monitor.MonitorSnapshot
 import java.util.Locale
@@ -45,7 +46,7 @@ fun StatusScreen(
     snapshot: MonitorSnapshot,
     settings: MonitorSettings,
     listening: Boolean,
-    listenError: String?,
+    listenError: ListenFailure?,
     address: Pair<String, String>?,
     onStart: () -> Unit,
 ) {
@@ -56,7 +57,7 @@ fun StatusScreen(
         VerdictBanner(snapshot)
         if (listenError != null) {
             Card(stringResource(R.string.cannot_listen), tint = WarningOrange) {
-                Text(listenError, fontFamily = FontFamily.Monospace, color = WarningOrange)
+                Text(Words.bindError(LocalResources.current, listenError), color = WarningOrange)
                 Text(stringResource(R.string.cannot_listen_hint), style = MaterialTheme.typography.bodySmall)
             }
         }
@@ -93,9 +94,6 @@ fun VerdictBanner(snapshot: MonitorSnapshot) {
         if (!usable) {
             Text(Words.reason(res, snapshot.verdict), style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold, color = Color.White)
-            Words.reasonDetail(res, snapshot.verdict)?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = Color.White)
-            }
         }
         snapshot.status?.let { Words.instruction(res, it.action) }?.let {
             Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {

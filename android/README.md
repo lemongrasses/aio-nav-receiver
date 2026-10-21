@@ -21,7 +21,7 @@ Android 8.0 (API 26) or newer.
 **Language:** one language at a time, 繁體中文 (`res/values-zh-rTW`) or English (`res/values`), like the
 desktop app since 1.2.0. It follows the phone until you choose one in **設定 / Settings → 顯示 / Display →
 語言 / Language** (跟隨系統 / 繁體中文 / English); the change applies at once and does not restart receiving
-(on Android 13+ it is also under the phone's Settings → Apps → AIO NAV Monitor → Language). Protocol codes
+(on Android 13+ it is also under the phone's Settings → Apps → AIO NAV Receiver → Language). Protocol codes
 are shown as words, with the desktop's wording (`src/aio_receiver/i18n.py`): READY → 就緒 / Ready,
 KEEP_STILL_REQUIRED → 需要保持靜止 / Must keep still, the 18 health and 18 blocking conditions, GNSS quality,
 the alignment lamps. Acronyms (GNSS, ZUPT, NHC), units and packet ids (0x04) stay as they are.
@@ -102,7 +102,7 @@ every 55 s. In the emulator the packets arrive from `10.0.2.2`.
 4. In the app, enter the Jetson's address as the phone sees it (usually `10.42.0.1`) under "Accept only
    source IP", then Apply. Allow notifications when asked, so the background 可用 / 阻擋 shows.
 
-To install on a phone: download `AIO_NAV_Monitor-android-<version>.apk` from the GitHub Release and open
+To install on a phone: download `AIO_NAV_Receiver-android-<version>.apk` from the GitHub Release and open
 it on the phone (allow "Install unknown apps" for the browser or file manager when Android asks). Or turn
 on Developer options → USB debugging, connect it, and `adb install -r <apk>`. A debug build and a release
 build are signed with different keys: uninstall one before installing the other.
@@ -125,9 +125,9 @@ if it is lost, installed copies can no longer be updated** (they have to be unin
 - **CI** gets it from four repository secrets: `AIONAV_KEYSTORE_BASE64` (the .jks, base64),
   `AIONAV_KEYSTORE_PASSWORD`, `AIONAV_KEY_ALIAS` (`aionav`) and `AIONAV_KEY_PASSWORD`. The `android` workflow
   builds the signed APK whenever the secrets are available, checks it carries the certificate above, and
-  uploads it as the `aio-nav-monitor-release-apk` artifact.
+  uploads it as the `aio-nav-receiver-release-apk` artifact.
 - **Publishing:** push a `v*` tag. The `android` workflow waits for the `ci` workflow to create that GitHub
-  Release, then attaches `AIO_NAV_Monitor-android-<versionName>.apk`. To attach it to a release that already
+  Release, then attaches `AIO_NAV_Receiver-android-<versionName>.apk`. To attach it to a release that already
   exists, run the `android` workflow by hand (Actions → android → Run workflow) with `release_tag` set, for
   example `v1.2.0`. Bump `versionName` and `versionCode` (major × 10000 + minor × 100 + patch) first: Android
   does not install an update with a lower or equal `versionCode`.

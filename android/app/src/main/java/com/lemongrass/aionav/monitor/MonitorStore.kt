@@ -30,6 +30,9 @@ data class MonitorSnapshot(
     val usableSeconds: Double = 0.0,
 )
 
+/** A port that could not be bound; the screen words it in the current language (ui/Words.bindError). */
+data class ListenFailure(val port: Int, val errno: Int?, val text: String)
+
 /** `start`/`end` in wall-clock milliseconds. `state` is the dashboard state, or NO_STATUS. */
 data class TimelineSegment(val start: Long, val end: Long, val usable: Boolean, val state: String)
 
@@ -96,13 +99,13 @@ object MonitorStore {
     private val _snapshot = MutableStateFlow(MonitorSnapshot())
     private val _history = MutableStateFlow(History())
     private val _listening = MutableStateFlow(false)
-    private val _listenError = MutableStateFlow<String?>(null)
+    private val _listenError = MutableStateFlow<ListenFailure?>(null)
 
     val settings: StateFlow<MonitorSettings> = _settings.asStateFlow()
     val snapshot: StateFlow<MonitorSnapshot> = _snapshot.asStateFlow()
     val history: StateFlow<History> = _history.asStateFlow()
     val listening: StateFlow<Boolean> = _listening.asStateFlow()
-    val listenError: StateFlow<String?> = _listenError.asStateFlow()
+    val listenError: StateFlow<ListenFailure?> = _listenError.asStateFlow()
 
     // Touched on the tick thread only (and under `this` for start/stop/reset).
     private var engine = MonitorEngine(GateConfig())
@@ -133,7 +136,7 @@ object MonitorStore {
             _listenError.value = null
         } catch (err: UdpReceiver.BindError) {
             _listening.value = false
-            _listenError.value = err.message
+            _listenError.value = ListenFailure(err.port, err.errno, err.cause?.message ?: "")
         }
         val ex = executor ?: Executors.newSingleThreadScheduledExecutor { r -> Thread(r, "MonitorTick") }
         executor = ex

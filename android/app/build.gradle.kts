@@ -69,8 +69,14 @@ android {
 
     testOptions {
         unitTests.all {
-            // The tests read the repository's shared fixtures/ folder (../fixtures from android/).
-            it.systemProperty("fixtures.dir", rootProject.projectDir.resolve("../fixtures").canonicalPath)
+            // The tests read the repository's shared fixtures/ folder (../fixtures from android/), the desktop's
+            // i18n.py and this app's resources straight from the source tree: declare them, so a change re-runs them.
+            val repo = rootProject.projectDir.resolve("..")
+            it.systemProperty("fixtures.dir", repo.resolve("fixtures").canonicalPath)
+            it.inputs.dir(repo.resolve("fixtures")).withPropertyName("sharedFixtures")
+            it.inputs.file(repo.resolve("src/aio_receiver/i18n.py")).withPropertyName("desktopI18n")
+            it.inputs.dir("src/main/res").withPropertyName("appResources")
+            it.inputs.dir("src/main/java/com/lemongrass/aionav").withPropertyName("appSources")
         }
     }
 }

@@ -118,7 +118,6 @@ class MonitorService : Service() {
             (snap.status?.let { " · ${Words.state(res, it.state)}" } ?: "")
         val lines = listOfNotNull(
             if (usable) null else Words.reason(res, snap.verdict),
-            Words.reasonDetail(res, snap.verdict),
             snap.status?.let { Words.instruction(res, it.action) },
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)

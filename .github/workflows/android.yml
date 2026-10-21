@@ -50,7 +50,7 @@ jobs:
           path: android/app/build/reports/tests/testDebugUnitTest/
       - uses: actions/upload-artifact@v4
         with:
-          name: aio-nav-monitor-debug-apk
+          name: aio-nav-receiver-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
       # Signed release APK. The keystore comes from the repository secrets, which pull requests from forks
@@ -76,13 +76,13 @@ jobs:
           "$apksigner" verify --print-certs "$apk" | tee "$RUNNER_TEMP/certs.txt"
           grep -q "certificate SHA-256 digest: $RELEASE_CERT_SHA256" "$RUNNER_TEMP/certs.txt" \
             || { echo "::error::The release APK is not signed with the release certificate."; exit 1; }
-          name="AIO_NAV_Monitor-android-${{ steps.version.outputs.version }}.apk"
+          name="AIO_NAV_Receiver-android-${{ steps.version.outputs.version }}.apk"
           mkdir -p "$RUNNER_TEMP/out" && cp "$apk" "$RUNNER_TEMP/out/$name"
           echo "dir=$RUNNER_TEMP/out" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         if: steps.release.outputs.dir != ''
         with:
-          name: aio-nav-monitor-release-apk
+          name: aio-nav-receiver-release-apk
           path: ${{ steps.release.outputs.dir }}/*.apk
           if-no-files-found: error
 
@@ -100,7 +100,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: aio-nav-monitor-release-apk
+          name: aio-nav-receiver-release-apk
           path: out
       - name: check the version
         run: |

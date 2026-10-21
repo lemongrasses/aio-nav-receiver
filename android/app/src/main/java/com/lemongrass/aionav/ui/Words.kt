@@ -5,11 +5,13 @@
 package com.lemongrass.aionav.ui
 
 import android.content.res.Resources
+import android.system.OsConstants
 import androidx.annotation.ArrayRes
 import com.lemongrass.aionav.R
 import com.lemongrass.aionav.core.Aio
 import com.lemongrass.aionav.core.Reason
 import com.lemongrass.aionav.core.Verdict
+import com.lemongrass.aionav.monitor.ListenFailure
 
 object Words {
     private fun pick(res: Resources, @ArrayRes table: Int, code: Int): String =
@@ -51,11 +53,14 @@ object Words {
 
     fun joined(res: Resources, items: List<String>): String = items.joinToString(res.getString(R.string.list_separator))
 
-    /** Reason shown when blocked, in the order the rules are checked. */
-    fun reason(res: Resources, v: Verdict): String = res.getString(when (v.reason) {
+    /** The verdict's reason (the desktop's reason.*); not ready names the state and the blocking conditions. */
+    fun reason(res: Resources, v: Verdict): String = if (v.reason == Reason.NOT_READY) {
+        val inhibit = joined(res, inhibitList(res, v.inhibit)).ifEmpty { "—" }
+        res.getString(R.string.reason_not_ready, state(res, v.state ?: 0), inhibit)
+    } else res.getString(when (v.reason) {
         Reason.USABLE -> R.string.reason_usable
         Reason.NO_STATUS -> R.string.reason_no_status
-        Reason.NOT_READY -> R.string.reason_not_ready
+        Reason.NOT_READY -> error("handled above")
         Reason.READY_NOT_STABLE -> R.string.reason_ready_not_stable
         Reason.NAV_STALE -> R.string.reason_nav_stale
         Reason.NAV_TIME_NOT_FORWARD -> R.string.reason_nav_time
@@ -63,10 +68,14 @@ object Words {
         Reason.NAV_NOT_FINITE -> R.string.reason_not_finite
     })
 
-    /** For "not ready": the state and the blocking conditions, e.g. 保持靜止（需要保持靜止、需要精對準）. */
-    fun reasonDetail(res: Resources, v: Verdict): String? {
-        if (v.reason != Reason.NOT_READY) return null
-        val inhibit = joined(res, inhibitList(res, v.inhibit)).ifEmpty { "—" }
-        return res.getString(R.string.not_ready_detail, state(res, v.state ?: 0), inhibit)
+    /** A port that could not be bound, worded here instead of the system's text (the desktop's fail.bind). */
+    fun bindError(res: Resources, f: ListenFailure): String {
+        val error = when (f.errno) {
+            OsConstants.EADDRINUSE -> res.getString(R.string.os_in_use)
+            OsConstants.EACCES, OsConstants.EPERM -> res.getString(R.string.os_denied)
+            OsConstants.EADDRNOTAVAIL -> res.getString(R.string.os_no_address)
+            else -> res.getString(R.string.os_other, f.errno?.toString() ?: "?", f.text)
+        }
+        return res.getString(R.string.fail_bind, "0.0.0.0:${f.port}", error)
     }
 }

@@ -154,7 +154,7 @@ follow; the `ios` workflow runs the iOS tests when `ios/`, `fixtures/` or the ge
 `android/` holds the same receiver for Android 8.0 or newer (Kotlin, Jetpack Compose): the same
 Status, Charts, Track and Settings screens as the iPhone app, one language at a time (繁體中文 or English,
 chosen in Settings, with the desktop's wording). Releases carry a signed APK
-(`AIO_NAV_Monitor-android-<version>.apk`). Unlike iOS it
+(`AIO_NAV_Receiver-android-<version>.apk`). Unlike iOS it
 keeps receiving in the background, with 可用 / 阻擋 in an ongoing notification, and it keeps the
 Jetson's no-internet Wi-Fi connected while it receives. Its rules (`android/app/src/main/java/.../core/`,
 pure Kotlin) are held to the desktop gate by the same files: JVM unit tests replay

@@ -2,6 +2,7 @@ package com.lemongrass.aionav.monitor
 
 import android.os.Process
 import android.os.SystemClock
+import android.system.ErrnoException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.Inet4Address
@@ -17,7 +18,8 @@ import java.net.SocketTimeoutException
  * time on the monotonic clock (elapsedRealtime, which keeps counting in deep sleep).
  */
 class UdpReceiver(ports: List<Int>, private val handler: (ByteArray, String?, Double) -> Unit) {
-    class BindError(val port: Int, cause: Exception) : Exception("UDP $port: ${cause.message}", cause)
+    /** `errno` from the system (android.system.OsConstants), when the exception carries one. */
+    class BindError(val port: Int, val errno: Int?, cause: Exception) : Exception("UDP $port: ${cause.message}", cause)
 
     @Volatile private var running = true
     private val sockets: List<DatagramSocket>
@@ -35,7 +37,7 @@ class UdpReceiver(ports: List<Int>, private val handler: (ByteArray, String?, Do
                 }
             } catch (e: Exception) {
                 opened.forEach { it.close() }
-                throw BindError(port, e)
+                throw BindError(port, errnoOf(e), e)
             }
         }
         sockets = opened
@@ -77,6 +79,9 @@ class UdpReceiver(ports: List<Int>, private val handler: (ByteArray, String?, Do
     }
 
     companion object {
+        private fun errnoOf(e: Throwable): Int? =
+            generateSequence(e) { it.cause }.filterIsInstance<ErrnoException>().firstOrNull()?.errno
+
         /** Monotonic seconds, the same clock the receive times use. */
         fun now(): Double = SystemClock.elapsedRealtimeNanos() / 1e9
 
