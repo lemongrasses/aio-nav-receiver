@@ -15,7 +15,7 @@ dist/
 data/
 logs/
 *.bin
-!tests/fixtures/*.bin.gz
+!fixtures/*.bin.gz
 
 # OS / editors
 .DS_Store
