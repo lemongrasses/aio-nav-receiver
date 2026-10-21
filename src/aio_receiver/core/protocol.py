@@ -104,26 +104,8 @@ ALIGN_MASK = 0b1110_0000                   # ALIGN | HEADING | FINE
 STATES = ("BOOTING", "CHECKING", "NAV_STARTING", "KEEP_STILL", "MOVE_STRAIGHT", "REFINING",
           "READY", "DEGRADED", "FAULT", "MAINTENANCE")
 READY = STATES.index("READY")
-STATE_TEXT = {
-    "BOOTING": "Dashboard 剛啟動", "CHECKING": "等待前置條件或自動啟動",
-    "NAV_STARTING": "AIO NAV 已啟動，尚無有效輸出", "KEEP_STILL": "對準第 1 階段（未對準）",
-    "MOVE_STRAIGHT": "對準第 2 階段（航向尚未有效）", "REFINING": "對準第 3 階段，或缺少必要條件",
-    "READY": "可使用", "DEGRADED": "曾經 READY，之後失去條件或對準",
-    "FAULT": "AIO NAV、其輸出或擁有權有問題", "MAINTENANCE": "已停止（操作員停止或未啟動）",
-}
 ACTIONS = ("NONE", "HOLD_STILL", "DRIVE_STRAIGHT", "KEEP_DRIVING", "SAFE_STOP", "SERVICE_REQUIRED",
            "MAINTENANCE_HOLD")
-ACTION_TEXT = {
-    "NONE": ("不需動作", "Nothing to do."),
-    "HOLD_STILL": ("車輛保持完全靜止", "Keep the vehicle completely still."),
-    "DRIVE_STRAIGHT": ("在安全空曠處等速直線行駛", "Drive straight at a steady speed in a safe, open area."),
-    "KEEP_DRIVING": ("在有 GNSS 的地方繼續正常行駛", "Keep driving normally with GNSS available."),
-    "SAFE_STOP": ("停止使用導航，依車輛安全程序處理",
-                  "Stop using navigation and follow the vehicle's safety procedure."),
-    "SERVICE_REQUIRED": ("需要維護", "Maintenance is needed."),
-    "MAINTENANCE_HOLD": ("已停止，按「恢復」後繼續", "Stopped. Press Start to resume."),
-}
-GNSS_QUALITY = ("Unknown", "None", "SPP", "RTK float", "RTK fix")
 HEALTH_BITS = ("DASHBOARD_OK", "CONFIG_OK", "IMU_STREAM_OK", "GNSS_STREAM_OK", "GNSS_QUALITY_OK",
                "NAV_PROCESS_OK", "NAV_OUTPUT_OK", "ALIGNMENT_OK", "HEADING_OK", "FINE_ALIGNMENT_OK",
                "DSO_OK", "EXTERNAL_ROUTE_OK", "RTK_CORRECTION_OK", "STORAGE_OK", "VEHICLE_ACK_OK",

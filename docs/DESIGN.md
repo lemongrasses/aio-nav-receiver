@@ -49,6 +49,7 @@ so the design spends nothing on throughput and everything on correctness and iso
 | `io/` | `recording` (`.bin` v1/v2 reader and writer, CSV, events), `sources` (UDP and replay sources) | `core` |
 | `engine.py` | the worker thread: source → monitor → recorder; publishes `Snapshot`; takes commands | `core`, `io` |
 | `analysis.py` | headless replay as fast as possible (`check` command, regression tests) | `core`, `io` |
+| `i18n.py` | every user-visible string in 繁體中文 and English; `Msg` (a key and its arguments) carries text across threads and is rendered in the current language only when shown | — |
 | `config.py`, `osutil.py` | typed settings with validation; per-OS paths, firewall hints, console | — |
 | `ui/` | tkinter views; the only code that imports tkinter. `ui/presentation.py` decides what the screen says (band colour and reason, alignment route, stream lights) as pure functions of a snapshot, so it is unit-tested | everything above |
 
@@ -174,8 +175,8 @@ on a 30-minute real recording.
 
 ## 9. What to revisit as it grows
 
-* **English UI.** The texts are in Chinese in `ui/` and in `core/gate.py` (`Verdict.text`); move them
-  into one string table.
+* **Another language.** Add a column to every entry in `i18n.py`; `tests/test_i18n.py` fails until each
+  message has it with the same fields.
 * **Several vehicles at once.** The monitor is per sender; run one monitor per session ID and show a list.
 * **Richer plots** (σ over time, rate history). Switch `ui/` to Qt with pyqtgraph; nothing else changes.
 * **Signed macOS build.** It needs an Apple Developer ID. Until then, users open the app once with

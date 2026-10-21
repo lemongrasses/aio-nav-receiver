@@ -6,14 +6,16 @@ Python 3.9's Tk fail intermittently ("Can't find a usable tk.tcl").
 
 from __future__ import annotations
 
+import re
 import time
 import tkinter as tk
 from dataclasses import replace
 from pathlib import Path
-from typing import Iterator, Optional
+from typing import Iterator, List, Optional
 
 import pytest
 
+from aio_receiver import i18n
 from aio_receiver.config import Settings
 from aio_receiver.core.monitor import Monitor
 from aio_receiver.engine import Engine, ReplayInfo, Snapshot
@@ -50,7 +52,7 @@ def snap_from(mon: Monitor, now: float, **kw: object) -> Snapshot:
                     cfg=g.cfg, nav=g.nav, nav_at=g.nav_at, status=g.status, status_at=g.status_at,
                     count=g.count.copy(), nav_rate=mon.nav_rate(mon.t), flag_seen=dict(mon.flag_seen),
                     nav_sender=mon.nav_sender, status_sender=mon.status_sender, track=tuple(mon.track.points),
-                    track_version=mon.track.version, source_kind="live", source_label="監聽 0.0.0.0:9000",
+                    track_version=mon.track.version, source_kind="live", source_address="0.0.0.0:9000",
                     verdict_since=mon.changed_at, status_rate=mon.status_rate(mon.t), ready_since=g.ready_since)
     return replace(base, **kw)  # type: ignore[arg-type]
 
@@ -81,6 +83,7 @@ def root() -> Iterator[tk.Tk]:
 @pytest.fixture
 def window(root: tk.Tk, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[MainWindow]:
     monkeypatch.setattr("aio_receiver.config.CONFIG_PATH", tmp_path / "settings.json")   # toggles save settings
+    theme.init_fonts(root, "zh-TW")
     win = MainWindow(root, FakeEngine(), Settings())
     yield win
     win._closing = True
@@ -152,7 +155,7 @@ def test_replay_bar_only_in_replay(window: MainWindow) -> None:
     window.root.update_idletasks()
     assert not window.replay_bar.frame.winfo_manager()
     info = ReplayInfo("aio_x.bin", 10, 100, 12.0, 44.0, 2.0, False, True)
-    window.render(replace(s, source_kind="replay", source_label="重播 aio_x.bin", replay=info))
+    window.render(replace(s, source_kind="replay", source_address="aio_x.bin", replay=info))
     assert window.replay_bar.frame.winfo_manager() == "pack"
     assert window.replay_bar.time.cget("text") == "0:00:12 / 0:00:44"
     assert window.root.title().startswith("重播")
@@ -161,7 +164,7 @@ def test_replay_bar_only_in_replay(window: MainWindow) -> None:
 def test_stale_status_is_not_shown_green(window: MainWindow) -> None:
     window.render(snap_from(ready_monitor(), 10.0))                           # 0x05 timed out
     state = window.status.v["state"]
-    assert state.cget("text") == "READY" and state.cget("fg") == theme.MUTED
+    assert state.cget("text") == "就緒" and state.cget("fg") == theme.MUTED
 
 
 def test_a_failing_frame_still_schedules_the_next(window: MainWindow) -> None:
@@ -183,3 +186,78 @@ def test_elide_keeps_both_ends() -> None:
     short = elide(p, 40)
     assert len(short) == 40 and short.startswith("C:\\Users") and short.endswith("aio_20261021_173320")
     assert elide("E:\\logs\\aio_1", 40) == "E:\\logs\\aio_1"
+
+
+# ------------------------------------------------------------------------- one language at a time
+CJK = re.compile(r"[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]")
+CODE = re.compile(r"\b[A-Z]{2,}_[A-Z_]+\b")                  # protocol identifiers such as KEEP_STILL
+
+
+def visible_text(win: MainWindow) -> List[str]:
+    """Every string on screen: widget texts, canvas texts, the window title."""
+    out = [win.root.title()]
+    todo: List[tk.Misc] = [win.root]
+    while todo:
+        w = todo.pop()
+        todo.extend(w.winfo_children())
+        if isinstance(w, tk.Canvas):
+            out += [w.itemcget(i, "text") for i in w.find_all() if w.type(i) == "text"]
+            continue
+        try:
+            out.append(str(w.cget("text")))
+        except tk.TclError:
+            pass
+    return [s for s in out if s]
+
+
+def every_state(win: MainWindow) -> Iterator[None]:
+    win.render(snap_from(Monitor(Settings().gate_config()), 0.0))                       # setup steps
+    yield
+    for state, action in ((3, 1), (4, 2), (5, 3), (7, 4), (8, 5), (9, 6)):
+        win.render(snap_from(ready_monitor(state=state, action=action), 2.99))
+        yield
+    s = snap_from(ready_monitor(1.5), 1.49)                                            # ready settling
+    win.render(s)
+    yield
+    s = snap_from(ready_monitor(), 2.99)
+    win.render(replace(s, recording="E:/logs/aio_1", recording_since=s.now - 3))
+    yield
+    win.render(snap_from(ready_monitor(), 10.0))                                       # both streams lost
+    yield
+    win.render(replace(s, source_errors=(i18n.msg("fail.bind", addr="0.0.0.0:9000",
+                                                     error=i18n.os_error(OSError(98, "x"))),)))
+    yield
+    info = ReplayInfo("aio_x.bin", 10, 100, 12.0, 44.0, 2.0, True, False)
+    win.render(replace(s, source_kind="replay", source_address="aio_x.bin", replay=info))
+    yield
+
+
+def test_english_screen_has_no_chinese_and_no_codes(window: MainWindow) -> None:
+    window.apply_settings(window.settings.replace(language="en"))
+    assert i18n.language() == "en"
+    for _ in every_state(window):
+        window.root.update_idletasks()
+        for text in visible_text(window):
+            assert not CJK.search(text), text
+            assert not CODE.search(text), text
+
+
+def test_chinese_screen_shows_no_protocol_codes(window: MainWindow) -> None:
+    for _ in every_state(window):
+        window.root.update_idletasks()
+        for text in visible_text(window):
+            assert not CODE.search(text), text
+
+
+def test_changing_only_the_language_keeps_listening(window: MainWindow) -> None:
+    engine = window.engine
+    assert isinstance(engine, FakeEngine)
+    starts: List[Settings] = []
+    engine.start_live = starts.append  # type: ignore[method-assign]
+    window.render(snap_from(ready_monitor(), 2.99))
+    window.apply_settings(window.settings.replace(language="en"))
+    window.render(snap_from(ready_monitor(), 2.99))
+    assert starts == [] and window.band.word.cget("text") == "Usable"
+    assert window.root.title().startswith("Usable | AIO NAV Receiver")
+    window.apply_settings(window.settings.replace(nav_port=9100))
+    assert len(starts) == 1

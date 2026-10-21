@@ -11,8 +11,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+from . import i18n
 from .core import protocol as P
 from .core.gate import GateConfig
+from .i18n import LANGUAGES, UserError
 
 log = logging.getLogger(__name__)
 CONFIG_PATH = Path.home() / ".aio_receiver.json"
@@ -32,6 +34,7 @@ class Settings:
     record_csv: bool = True
     alert_sound: bool = True        # sound when the output stops being usable
     show_track: bool = True
+    language: str = ""              # "" = follow the operating system; "zh-TW" | "en"
 
     @property
     def ports(self) -> List[int]:
@@ -50,30 +53,38 @@ def _ipv4(v: Any) -> str:
     try:
         return str(ipaddress.IPv4Address(str(v).strip()))
     except ValueError:
-        raise ValueError(f"{v!r} 不是 IPv4 位址") from None
+        raise UserError("val.ipv4", v=str(v)) from None
 
 
 def _port(lo: int) -> Callable[[Any], int]:
     def parse(v: Any) -> int:
-        p = int(str(v).strip() or 0)
+        p = _number(v, int)
         if not lo <= p <= 65535:
-            raise ValueError(f"埠號要在 {lo}–65535")
+            raise UserError("val.port", lo=lo)
         return p
     return parse
 
 
+def _number(v: Any, kind: Callable[..., Any], base: Optional[int] = None) -> Any:
+    try:
+        text = str(v).strip() or "0"
+        return kind(text, base) if base is not None else kind(text)
+    except ValueError:
+        raise UserError("val.number", v=str(v)) from None
+
+
 def _msg_id(v: Any) -> int:
-    i = v if isinstance(v, int) else int(str(v).strip(), 0)
+    i = v if isinstance(v, int) else _number(v, int, 0)
     if not 0 <= i <= 255 or i == P.NAV_ID:
-        raise ValueError("message ID 要在 0x00–0xFF，且不能是 0x04")
-    return i
+        raise UserError("val.msg_id")
+    return int(i)
 
 
 def _seconds(lo: float, allow_zero: bool) -> Callable[[Any], float]:
     def parse(v: Any) -> float:
-        x = float(str(v).strip())
+        x = float(_number(v, float))
         if not (lo <= x <= 60.0) or (x == 0 and not allow_zero):
-            raise ValueError("秒數要大於 0 且不超過 60" if not allow_zero else "秒數要在 0–60")
+            raise UserError("val.seconds0" if allow_zero else "val.seconds")
         return x
     return parse
 
@@ -86,7 +97,14 @@ def _bool(v: Any) -> bool:
         return True
     if s in ("0", "false", "no", "off"):
         return False
-    raise ValueError(f"{v!r} 不是 true / false")
+    raise UserError("val.bool", v=str(v))
+
+
+def _language(v: Any) -> str:
+    s = str(v).strip()
+    if s and s not in LANGUAGES:
+        raise UserError("val.language", v=s)
+    return s
 
 
 PARSERS: Dict[str, Callable[[Any], Any]] = {
@@ -102,6 +120,7 @@ PARSERS: Dict[str, Callable[[Any], Any]] = {
     "record_csv": _bool,
     "alert_sound": _bool,
     "show_track": _bool,
+    "language": _language,
 }
 
 
@@ -140,7 +159,7 @@ def load(path: Optional[Path] = None) -> Tuple[Settings, List[str]]:
         log.warning("settings file %s unreadable: %s", path, e)
         return Settings(), [f"{path.name}: {e}"]
     if not isinstance(raw, dict):
-        return Settings(), [f"{path.name}: 不是 JSON 物件"]
+        return Settings(), [f"{path.name}: {i18n.t('val.not_object')}"]
     s, problems = from_dict(raw)
     for p in problems:
         log.warning("setting ignored: %s", p)

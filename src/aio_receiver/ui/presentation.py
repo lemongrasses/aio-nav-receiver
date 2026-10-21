@@ -1,8 +1,9 @@
 """What the screen says, as pure functions of a Snapshot (no tkinter, so it is unit-tested).
+All text comes from i18n, in the current language.
 
 Colour carries meaning only:
   go    可用 - the output may be used
-  wait  阻擋, but as expected: alignment in progress or READY still settling; follow the instruction
+  wait  阻擋, but as expected: alignment in progress or ready still settling; follow the instruction
   stop  阻擋 because something is wrong: data lost, fault, stale, flags, internal error
   idle  阻擋 with nothing to judge yet, or AIO NAV stopped on purpose
 """
@@ -14,63 +15,68 @@ from typing import NamedTuple, Optional
 from ..core import protocol as P
 from ..core.gate import Reason
 from ..engine import Snapshot
+from ..i18n import t
 
 STARTUP = frozenset({"BOOTING", "CHECKING", "NAV_STARTING"})
 
-# The alignment as a route: (label, states at that station). The last station is READY.
-STATIONS = (("啟動", STARTUP), ("靜止", {"KEEP_STILL"}), ("直行", {"MOVE_STRAIGHT"}),
-            ("精對準", {"REFINING"}), ("可用", {"READY"}))
+# The alignment as a route: (label key, states at that station). The last station is READY.
+STATIONS = (("station.start", STARTUP), ("station.still", {"KEEP_STILL"}),
+            ("station.straight", {"MOVE_STRAIGHT"}), ("station.fine", {"REFINING"}),
+            ("station.usable", {"READY"}))
 
 _STATE_HEADLINE = {
-    "BOOTING": "系統啟動中", "CHECKING": "系統啟動中", "NAV_STARTING": "系統啟動中",
-    "KEEP_STILL": "對準第 1 階段：保持靜止", "MOVE_STRAIGHT": "對準第 2 階段：直線行駛",
-    "REFINING": "對準第 3 階段：精對準", "READY": "READY，但仍有阻擋條件",
-    "DEGRADED": "已失去對準條件", "FAULT": "AIO NAV 故障", "MAINTENANCE": "AIO NAV 已停止",
+    "BOOTING": "band.startup", "CHECKING": "band.startup", "NAV_STARTING": "band.startup",
+    "KEEP_STILL": "band.stage1", "MOVE_STRAIGHT": "band.stage2", "REFINING": "band.stage3",
+    "READY": "band.ready_inhibit", "DEGRADED": "band.degraded", "FAULT": "band.fault",
+    "MAINTENANCE": "band.maintenance",
 }
 
 
 class Band(NamedTuple):
     kind: str           # go | wait | stop | idle
-    word: str           # 可用 | 阻擋
+    word: str           # 可用 | 阻擋 in the current language
     headline: str       # one short line: why, in the operator's words
 
 
 def state_name(snap: Snapshot) -> Optional[str]:
+    """The 0x05 state's protocol name (READY, KEEP_STILL, ...), or None before any 0x05."""
     return P.name_of(snap.status.state, P.STATES) if snap.status is not None else None
 
 
 def band(snap: Snapshot, failure: Optional[str]) -> Band:
+    usable, blocked = t("word.usable"), t("word.blocked")
     if failure:
-        return Band("stop", "阻擋", failure)
+        return Band("stop", blocked, failure)
     v = snap.verdict
     if v.usable:
-        return Band("go", "可用", "導航輸出可以使用")
+        return Band("go", usable, t("band.usable"))
     r = v.reason
     if r is Reason.NO_STATUS:
         if snap.nothing_received:
-            return Band("idle", "阻擋", "還沒收到任何封包")
+            return Band("idle", blocked, t("band.nothing"))
         if snap.count.status == 0:
-            return Band("stop", "阻擋", "沒有狀態封包 0x05")
-        return Band("stop", "阻擋", f"狀態封包 0x05 中斷超過 {snap.cfg.status_timeout:g} 秒")
+            return Band("stop", blocked, t("band.no_status"))
+        return Band("stop", blocked, t("band.status_lost", s=f"{snap.cfg.status_timeout:g}"))
     if r is Reason.NOT_READY:
         name = P.name_of(v.state or 0, P.STATES)
-        headline = _STATE_HEADLINE.get(name, f"狀態 {name}")
+        key = _STATE_HEADLINE.get(name)
+        headline = t(key) if key else t("band.state", state=name)
         if name == "MAINTENANCE":
-            return Band("idle", "阻擋", headline)
+            return Band("idle", blocked, headline)
         if name in STARTUP or name in ("KEEP_STILL", "MOVE_STRAIGHT", "REFINING"):
-            return Band("wait", "阻擋", headline)
-        return Band("stop", "阻擋", headline)
+            return Band("wait", blocked, headline)
+        return Band("stop", blocked, headline)
     if r is Reason.READY_NOT_STABLE:
-        return Band("wait", "阻擋", f"READY 確認中（需穩定 {snap.cfg.ready_stable:g} 秒）")
+        return Band("wait", blocked, t("band.settling", s=f"{snap.cfg.ready_stable:g}"))
     if r is Reason.NAV_STALE:
         if snap.nav is None:
-            return Band("stop", "阻擋", "沒有導航封包 0x04")
-        return Band("stop", "阻擋", f"導航封包 0x04 中斷超過 {snap.cfg.nav_max_age:g} 秒")
+            return Band("stop", blocked, t("band.no_nav"))
+        return Band("stop", blocked, t("band.nav_lost", s=f"{snap.cfg.nav_max_age:g}"))
     if r is Reason.NAV_TIME_NOT_FORWARD:
-        return Band("stop", "阻擋", "導航時間沒有往前")
+        return Band("stop", blocked, t("band.nav_backwards"))
     if r is Reason.NAV_NOT_ALIGNED:
-        return Band("stop", "阻擋", "導航旗標顯示未對準")
-    return Band("stop", "阻擋", "導航資料含無效數值")
+        return Band("stop", blocked, t("band.not_aligned"))
+    return Band("stop", blocked, t("band.not_finite"))
 
 
 class Rail(NamedTuple):
@@ -78,17 +84,17 @@ class Rail(NamedTuple):
 
     at: int
     mode: str           # progress | done | lost | fault | stopped | none
-    fraction: float     # READY settling: 0..1 of the stability time
+    fraction: float     # ready settling: 0..1 of the stability time
     note: str           # shown under the rail
 
 
 def rail(snap: Snapshot) -> Rail:
     if not snap.status_fresh:
-        return Rail(-1, "none", 0.0, "沒有最新的狀態封包" if not snap.nothing_received else "")
+        return Rail(-1, "none", 0.0, t("rail.no_status") if not snap.nothing_received else "")
     name = state_name(snap)
     if name == "READY":
         if snap.ready_since is None:
-            return Rail(4, "progress", 0.0, "READY，但仍有阻擋條件")
+            return Rail(4, "progress", 0.0, t("rail.ready_inhibit"))
         stable = snap.cfg.ready_stable
         f = 1.0 if stable <= 0 else max(0.0, min((snap.now - snap.ready_since) / stable, 1.0))
         return Rail(4, "done" if f >= 1.0 else "progress", f, "")   # done: anything still wrong is in the band
@@ -96,12 +102,12 @@ def rail(snap: Snapshot) -> Rail:
         if name in states:
             return Rail(i, "progress", 0.0, "")
     if name == "DEGRADED":
-        return Rail(4, "lost", 0.0, "曾經 READY，之後失去條件")
+        return Rail(4, "lost", 0.0, t("rail.degraded"))
     if name == "FAULT":
-        return Rail(-1, "fault", 0.0, "AIO NAV、其輸出或擁有權有問題")
+        return Rail(-1, "fault", 0.0, t("rail.fault"))
     if name == "MAINTENANCE":
-        return Rail(-1, "stopped", 0.0, "操作員已停止，或尚未啟動")
-    return Rail(-1, "none", 0.0, f"未知狀態 {name}")
+        return Rail(-1, "stopped", 0.0, t("rail.stopped"))
+    return Rail(-1, "none", 0.0, t("rail.unknown", state=name))
 
 
 class Link(NamedTuple):
@@ -111,28 +117,28 @@ class Link(NamedTuple):
 
 def nav_link(snap: Snapshot) -> Link:
     if snap.nav is None:
-        return Link("idle", "沒有資料")
+        return Link("idle", t("link.none"))
     age = snap.now - snap.nav_at
     if age > snap.cfg.nav_max_age:
-        return Link("stop", f"中斷 {fmt_age(age)}")
-    return Link("go", f"{snap.nav_rate:.0f} Hz   {age * 1000:.0f} ms")
+        return Link("stop", t("link.lost", age=fmt_age(age)))
+    return Link("go", t("link.nav", rate=snap.nav_rate, ms=age * 1000))
 
 
 def status_link(snap: Snapshot) -> Link:
     if snap.status is None:
-        return Link("idle", "沒有資料")
+        return Link("idle", t("link.none"))
     age = snap.now - snap.status_at
     if age > snap.cfg.status_timeout:
-        return Link("stop", f"中斷 {fmt_age(age)}")
-    return Link("go", f"{snap.status_rate:.1f} Hz   {age:.1f} s 前")
+        return Link("stop", t("link.lost", age=fmt_age(age)))
+    return Link("go", t("link.status", rate=snap.status_rate, s=age))
 
 
 def fmt_age(s: float) -> str:
     if s < 60:
-        return f"{s:.1f} s"
+        return t("age.s", s=s)
     if s < 3600:
-        return f"{int(s // 60)} 分 {int(s % 60):02d} 秒"
-    return f"{int(s // 3600)} 小時 {int(s % 3600 // 60)} 分"
+        return t("age.ms", m=int(s // 60), s=int(s % 60))
+    return t("age.hm", h=int(s // 3600), m=int(s % 3600 // 60))
 
 
 def fmt_dur(s: float) -> str:

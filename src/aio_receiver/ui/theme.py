@@ -34,26 +34,33 @@ BASE, INK, CAUTION = KERB, ASPHALT, "#9A6700"
 
 _TXT = ("Microsoft JhengHei UI", "Microsoft JhengHei", "PingFang TC", "Noto Sans CJK TC", "Noto Sans TC",
         "Source Han Sans TC", "Noto Sans CJK SC", "WenQuanYi Micro Hei", "Droid Sans Fallback")
+_TXT_EN = ("Segoe UI", "Helvetica Neue", "SF Pro Text", "Noto Sans", "DejaVu Sans", "Liberation Sans")
 _NUM = ("Bahnschrift", "DIN Alternate", "DIN 1451", "Helvetica Neue", "Segoe UI", "DejaVu Sans", "Liberation Sans")
 _NUM_COND = ("Bahnschrift SemiBold Condensed", "Bahnschrift Condensed", "DIN Condensed", "DejaVu Sans Condensed",
              "Liberation Sans Narrow", "Arial Narrow")
 
-TXT = "TkDefaultFont"       # Chinese text
+TXT = "TkDefaultFont"       # text in the current language (CJK-capable when Chinese)
 NUM = "TkDefaultFont"       # numbers, codes (ASCII only)
-NUM_COND = "TkDefaultFont"  # long codes where space is tight (MOVE_STRAIGHT, flag names)
+NUM_COND = "TkDefaultFont"  # condensed ASCII where space is tight
+NAME = "TkDefaultFont"      # translated names in tight spaces (states, conditions): condensed in English
 
 DESIGN_SIZE = (1440, 900)   # pixels at 96 dpi
 DESIGN_SCALING = 96 / 72    # Tk pixels per point at 96 dpi
 
 
-def init_fonts(root: tk.Misc) -> None:
-    """Pick font families once the Tk root exists (Tk cannot list fonts before)."""
-    global TXT, NUM, NUM_COND
+def init_fonts(root: tk.Misc, language: str = "zh-TW") -> None:
+    """Pick font families for `language` once the Tk root exists (Tk cannot list fonts before)."""
+    global TXT, NUM, NUM_COND, NAME
     installed = set(tkfont.families(root))
     default = tkfont.nametofont("TkDefaultFont").actual("family")
-    TXT = next((f for f in _TXT if f in installed), default)
+    cjk = next((f for f in _TXT if f in installed), default)
     NUM = next((f for f in _NUM if f in installed), default)
     NUM_COND = next((f for f in _NUM_COND if f in installed), NUM)
+    if language == "en":
+        TXT = next((f for f in _TXT_EN if f in installed), default)
+        NAME = NUM_COND
+    else:
+        TXT = NAME = cjk
 
 
 def init_styles(root: tk.Misc) -> None:
