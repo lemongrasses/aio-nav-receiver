@@ -26,7 +26,7 @@ are shown as words, with the desktop's wording (`src/aio_receiver/i18n.py`): REA
 KEEP_STILL_REQUIRED → 需要保持靜止 / Must keep still, the 18 health and 18 blocking conditions, GNSS quality,
 the alignment lamps. Acronyms (GNSS, ZUPT, NHC), units and packet ids (0x04) stay as they are.
 
-Version 1.2.0 (`versionName` in `app/build.gradle.kts`), the same as the desktop app.
+Version 1.2.1 (`versionName` in `app/build.gradle.kts`), the same as the desktop app.
 
 ## Code
 
