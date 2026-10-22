@@ -4,9 +4,11 @@ on:
   push:
     branches: [main]
     tags: ["v*"]
-    paths: ["android/**", "fixtures/**", "tools/make_gate_vectors.py", ".github/workflows/android.yml"]
+    paths: ["android/**", "fixtures/**", "src/aio_receiver/i18n.py", "docs/TERMINOLOGY.zh-TW.md", "tools/make_gate_vectors.py",
+            ".github/workflows/android.yml"]
   pull_request:
-    paths: ["android/**", "fixtures/**", "tools/make_gate_vectors.py", ".github/workflows/android.yml"]
+    paths: ["android/**", "fixtures/**", "src/aio_receiver/i18n.py", "docs/TERMINOLOGY.zh-TW.md", "tools/make_gate_vectors.py",
+            ".github/workflows/android.yml"]
   workflow_dispatch:
     inputs:
       release_tag:
@@ -40,7 +42,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - id: version
         run: echo "version=$(sed -nE 's/.*versionName = "([^"]+)".*/\1/p' app/build.gradle.kts)" >> "$GITHUB_OUTPUT"
-      # The unit tests read ../fixtures from the checkout (the desktop and iOS apps test against the same files).
+      # The unit tests read ../fixtures, the desktop's i18n.py and docs/TERMINOLOGY.zh-TW.md from the checkout
+      # (the desktop and iOS apps test against the same files), so a change to any of them runs this workflow.
       - name: assembleDebug testDebugUnitTest
         run: ./gradlew assembleDebug testDebugUnitTest --console=plain
       - uses: actions/upload-artifact@v4
