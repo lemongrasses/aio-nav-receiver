@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.1 — 2026-10-22
 
 ### Changed
 - **不可用 instead of 阻擋.** The verdict reads 可用 / 不可用 (may the navigation output be used?),

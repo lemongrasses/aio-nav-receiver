@@ -16,7 +16,7 @@ spec "AIO NAV UDP 接收端 App 開發規格"); monitoring only, the app never s
 One language at a time, chosen in Settings → Display → Language (follow system / 繁體中文 / English); it
 applies at once and listening carries on. Protocol codes are shown as readable words with the desktop
 app's wording: `MyApp/Protocol/Vocabulary.swift` mirrors `src/aio_receiver/i18n.py` (`VocabularyTests`
-compares them), and screen labels live in `MyApp/Localizable.xcstrings`. Version 1.2.0, as the desktop.
+compares them), and screen labels live in `MyApp/Localizable.xcstrings`. Version 1.2.1, as the desktop.
 
 ## Code
 

@@ -31,8 +31,8 @@ android {
         minSdk = 26
         targetSdk = 36
         // Same version as the desktop app; code = major * 10000 + minor * 100 + patch.
-        versionCode = 10200
-        versionName = "1.2.0"
+        versionCode = 10201
+        versionName = "1.2.1"
     }
 
     androidResources {
