@@ -330,7 +330,7 @@
 				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Receives AIO NAV navigation and status packets over UDP on the local network. 透過區域網路接收 AIO NAV 的導航與狀態 UDP 封包。";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Receives the AIO NAV navigation packets (0x04) and status packets (0x05) over UDP on the local network.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -363,7 +363,7 @@
 				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Receives AIO NAV navigation and status packets over UDP on the local network. 透過區域網路接收 AIO NAV 的導航與狀態 UDP 封包。";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Receives the AIO NAV navigation packets (0x04) and status packets (0x05) over UDP on the local network.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

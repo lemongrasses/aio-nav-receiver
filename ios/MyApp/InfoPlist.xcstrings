@@ -1,0 +1,24 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSLocalNetworkUsageDescription" : {
+      "comment" : "Shown by iOS when the app first listens on the local network. iOS uses the iPhone's language here, not the app's setting.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Receives the AIO NAV navigation packets (0x04) and status packets (0x05) over UDP on the local network."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "透過區域網路以 UDP 接收 AIO NAV 的導航封包（0x04）與狀態封包（0x05）。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
