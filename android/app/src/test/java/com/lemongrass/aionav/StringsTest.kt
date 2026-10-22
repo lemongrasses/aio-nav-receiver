@@ -1,7 +1,8 @@
 // One language at a time, like the desktop 1.2.0 (tests/test_i18n.py): both languages hold the same texts
 // with the same arguments, the protocol vocabulary is complete and worded exactly as the desktop's
-// src/aio_receiver/i18n.py (read from the source tree, like the iOS VocabularyTests), English shows no
-// Chinese, and the screen never shows a raw protocol code such as KEEP_STILL_REQUIRED.
+// src/aio_receiver/i18n.py (read from the source tree, like the iOS VocabularyTests), 繁體中文 follows the
+// glossary shared with web_monitor (docs/TERMINOLOGY.zh-TW.md: its protocol tables and its words not to use),
+// English shows no Chinese, and the screen never shows a raw protocol code such as KEEP_STILL_REQUIRED.
 
 package com.lemongrass.aionav
 
@@ -137,6 +138,60 @@ class StringsTest {
         val bad = zh.all.filter { (k, v) -> k != "language_en" && words.findAll(v).any { it.value !in keep } }
             .filterValues { !it.contains("web_monitor") }
         assertTrue("$bad", bad.isEmpty())
+    }
+
+    /** docs/TERMINOLOGY.zh-TW.md, the 繁體中文 glossary shared with web_monitor (its tables, by heading). */
+    private object Glossary {
+        private val dir = File(System.getProperty("fixtures.dir") ?: "../../fixtures").parentFile
+        private val lines = File(dir, "docs/TERMINOLOGY.zh-TW.md").readLines()
+
+        /** The body rows of the table under `heading`, each as its cells (backticks removed). */
+        fun rows(heading: String): List<List<String>> {
+            val start = lines.indexOf(heading)
+            check(start >= 0) { "$heading not in TERMINOLOGY.zh-TW.md" }
+            return lines.drop(start + 1).takeWhile { !it.startsWith("#") }
+                .filter { it.startsWith("|") }
+                .map { row -> row.trim().removePrefix("|").removeSuffix("|").split("|").map { it.trim().replace("`", "") } }
+                .drop(2)                                        // header and |---| line
+        }
+    }
+
+    @Test
+    fun protocolWordsAreTheSharedGlossary() {
+        fun same(array: String, heading: String, zhColumn: Int, enColumn: Int, names: List<String>? = null) {
+            val rows = Glossary.rows(heading)
+            if (names != null) assertEquals(heading, names, rows.map { it[1] })
+            assertEquals(heading, rows.map { it[zhColumn] }, zh.arrays.getValue(array))
+            assertEquals(heading, rows.map { it[enColumn] }, en.arrays.getValue(array))
+        }
+        same("state_names", "### 狀態（state）", 2, 3, Aio.STATES)
+        same("action_texts", "### 要求的動作（requested_action）", 2, 4, Aio.ACTIONS)
+        same("gnss_quality_names", "### GNSS 品質（gnss_quality）", 1, 2)
+        same("health_names", "### 成立條件（health_flags）", 2, 3, Aio.HEALTH_BITS)
+        same("inhibit_names", "### 不可用原因（inhibit_flags）", 2, 3, Aio.INHIBIT_BITS)
+        val lamps = Glossary.rows("### 對準旗標（0x04 flags）").associate { it[0] to (it[1] to it[2]) }
+        for ((flag, key) in listOf("ALIGN" to "lamp_align", "HEADING" to "lamp_heading", "FINE" to "lamp_fine")) {
+            assertEquals(flag, lamps.getValue(flag).first, zh.strings[key])
+            assertEquals(flag, lamps.getValue(flag).second, en.strings[key])
+        }
+    }
+
+    @Test
+    fun chineseAvoidsTheGlossarysWords() {
+        // 不使用的詞: a word in the left column fails, unless it is part of a word in the right column there
+        // (時間戳 inside 時間戳記). Checked: every Chinese text in the app, including literals in the Kotlin code.
+        val avoid = Glossary.rows("## 不使用的詞").map { it[0] to it[1].split("、").map(String::trim) }
+        check(avoid.size > 10)
+        val literal = Regex("\"[^\"\\n]*\\p{IsHan}[^\"\\n]*\"")
+        val code = File("src/main/java").walkTopDown().filter { it.extension == "kt" }
+            .flatMap { f -> f.readLines().flatMap { line -> literal.findAll(line).map { "${f.name}: ${it.value}" } } }
+        val texts = zh.all.map { (k, v) -> "$k: $v" } + code
+        val bad = texts.flatMap { text ->
+            avoid.filter { (word, instead) ->
+                instead.filter { word in it }.fold(text) { t, keep -> t.replace(keep, "") }.contains(word)
+            }.map { (word, instead) -> "$text  (「$word」→ ${instead.joinToString("、")})" }
+        }
+        assertTrue(bad.joinToString("\n"), bad.isEmpty())
     }
 
     @Test

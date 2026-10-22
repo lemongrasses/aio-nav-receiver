@@ -70,11 +70,15 @@ The unit tests run on the JVM, no device needed. They hold this port to the desk
 - both languages hold the same texts with the same arguments and a word for every protocol code; English
   has no Chinese; no raw protocol code (KEEP_STILL_REQUIRED) is shown on screen. The recordings' reason text
   is compared as the pre-1.0 sentence rebuilt from the codes (`Verdict.legacyText`, the desktop's
-  `legacy_text`), so the fixtures stay valid whatever the display language.
+  `legacy_text`), so the fixtures stay valid whatever the display language;
+- 繁體中文 follows `docs/TERMINOLOGY.zh-TW.md`, the glossary shared with web_monitor: the protocol words
+  equal its tables, and no Chinese text in the app (strings and Kotlin literals) uses a word from its
+  「不使用的詞」 list (阻擋, 年齡, 橫滾, …). The words come from `src/aio_receiver/i18n.py`, which the tests also
+  read, so a wording change is made there and in the glossary first, then copied here.
 
 After changing a rule in the desktop gate, regenerate the vectors (`python tools/make_gate_vectors.py`)
-and make `core/Gate.kt` follow; the `android` workflow runs these tests when `android/`, `fixtures/` or
-the generator change, and uploads the debug APK.
+and make `core/Gate.kt` follow; the `android` workflow runs these tests when `android/`, `fixtures/`,
+`src/aio_receiver/i18n.py`, `docs/TERMINOLOGY.zh-TW.md` or the generator change, and uploads the debug APK.
 
 ## Try it in the emulator
 
