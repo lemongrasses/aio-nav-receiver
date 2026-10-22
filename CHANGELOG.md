@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Changed
+- **不可用 instead of 阻擋.** The verdict reads 可用 / 不可用 (may the navigation output be used?),
+  and the 0x05 blocking conditions are 不可用原因, on the screen, in the notification, the window
+  title and the events log. English (Usable / Blocked) is unchanged.
 - **繁體中文 wording shared with web_monitor** (`docs/TERMINOLOGY.zh-TW.md`, the same file in both
   repositories), on the desktop, iPhone and Android alike: 滾轉 (roll, was 橫滾), RTK 浮動解 (was
   浮點解), 水平速率 (ground speed), GPS 週秒, 延遲 for a data age or stale data (was 年齡 / 過舊),

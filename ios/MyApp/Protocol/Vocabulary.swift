@@ -92,7 +92,7 @@ nonisolated enum Vocabulary {
     /// Desktop _T keys used here: verdict words and reasons, "none", system errors.
     static let messages: [String: (String, String)] = [
         "word.usable": ("可用", "Usable"),
-        "word.blocked": ("阻擋", "Blocked"),
+        "word.blocked": ("不可用", "Blocked"),
         "reason.usable": ("可用", "Usable"),
         "reason.no_status": ("沒有最新的狀態封包 (0x05)", "No current status packet (0x05)"),
         "reason.not_ready": ("狀態不是就緒：{state}（{inhibit}）", "Status is not ready: {state} ({inhibit})"),

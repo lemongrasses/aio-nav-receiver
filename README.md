@@ -29,7 +29,7 @@ On macOS, allow "incoming connections" and "Local Network" the first time the ap
 
 **On the Jetson.** Set Maintenance → AIO NAV config → `output_udp` to this PC's IP:9000, then restart AIO NAV.
 For 0x05, set `status_udp.enabled: true` in the dashboard config (it is off by default). Without 0x05
-the app always shows 阻擋 "沒有最新的狀態封包", by design.
+the app always shows 不可用 "沒有最新的狀態封包", by design.
 
 ## Screen
 
@@ -38,9 +38,9 @@ The colours follow road signs and only ever carry meaning:
 | Band | Meaning |
 |---|---|
 | **Green 可用** | the navigation output may be used |
-| **Yellow 阻擋** | not yet, as expected: alignment in progress or READY still settling; follow the instruction |
-| **Red 阻擋** | something is wrong: data lost, fault, stale, flags, a port that could not be bound, an internal error, or a screen that has not updated for 0.5 s |
-| **Grey 阻擋** | nothing to judge yet (no packets), or AIO NAV stopped on purpose |
+| **Yellow 不可用** | not yet, as expected: alignment in progress or READY still settling; follow the instruction |
+| **Red 不可用** | something is wrong: data lost, fault, stale, flags, a port that could not be bound, an internal error, or a screen that has not updated for 0.5 s |
+| **Grey 不可用** | nothing to judge yet (no packets), or AIO NAV stopped on purpose |
 
 | Area | Shows |
 |---|---|
@@ -75,17 +75,17 @@ instead. You can choose another folder in **設定**.
 |---|---|
 | `aio_<time>.bin` | every packet with its receive time and sender (format v2, see [docs/DESIGN.md](docs/DESIGN.md)) |
 | `aio_<time>_nav.csv` | decoded 0x04 (can be turned off; rebuild later with `export`) |
-| `aio_<time>_events.log` | each 可用 / 阻擋 change, with the time of day |
+| `aio_<time>_events.log` | each 可用 / 不可用 change, with the time of day |
 
 Files are written by a separate thread, so a slow USB stick can never delay receiving or cause a
-false 阻擋. A write error, such as a full disk or a pulled USB stick, stops the recording and shows
+false 不可用. A write error, such as a full disk or a pulled USB stick, stops the recording and shows
 the error. So does storage falling about 5 minutes behind. Monitoring carries on. The footer shows
 the full path of the recording in progress.
 
 **重播記錄…** plays a `.bin` at 1×, 2×, 5× or 10×. The verdicts are worked out from the recorded
-times, so a replay shows the same 可用 / 阻擋 changes at the same moments as the original run, at
+times, so a replay shows the same 可用 / 不可用 changes at the same moments as the original run, at
 any speed. There is one exception: a replay starts with no history. If recording started while the
-output was already 可用, the replay shows 阻擋 (READY 尚未穩定) for its first ~2 s.
+output was already 可用, the replay shows 不可用 (就緒尚未穩定) for its first ~2 s.
 
 Recordings made before 1.0 still open. They carry no sender address, so the 只接受來源 IP filter
 doesn't apply to them.
@@ -95,7 +95,7 @@ doesn't apply to them.
 ```
 aio-receiver                                  # the window, listening
 aio-receiver --replay logs/aio_….bin --speed 5
-aio-receiver check logs/aio_….bin [--json]    # print every 可用 / 阻擋 change, no window
+aio-receiver check logs/aio_….bin [--json]    # print every 可用 / 不可用 change, no window
 aio-receiver export logs/aio_….bin [-o x.csv] # decoded 0x04 as CSV
 ```
 
@@ -137,7 +137,7 @@ Layout:
 
 ## iPhone app
 
-`ios/` holds the same receiver for iPhone (iOS 26): live 可用 / 阻擋 with the operator instruction,
+`ios/` holds the same receiver for iPhone (iOS 26): live 可用 / 不可用 with the operator instruction,
 charts of the last 1–10 minutes, the track on a map, in 繁體中文 and English. It uses the same rules
 as the desktop gate, and both are tested against the same files:
 
@@ -157,7 +157,7 @@ follow; the `ios` workflow runs the iOS tests when `ios/`, `fixtures/` or the ge
 Status, Charts, Track and Settings screens as the iPhone app, one language at a time (繁體中文 or English,
 chosen in Settings, with the desktop's wording). Releases carry a signed APK
 (`AIO_NAV_Receiver-android-<version>.apk`). Unlike iOS it
-keeps receiving in the background, with 可用 / 阻擋 in an ongoing notification, and it keeps the
+keeps receiving in the background, with 可用 / 不可用 in an ongoing notification, and it keeps the
 Jetson's no-internet Wi-Fi connected while it receives. Its rules (`android/app/src/main/java/.../core/`,
 pure Kotlin) are held to the desktop gate by the same files: JVM unit tests replay
 `fixtures/gate_vectors.json` step by step and the real recordings with the desktop `Monitor`'s timing.

@@ -3,9 +3,9 @@ All text comes from i18n, in the current language.
 
 Colour carries meaning only:
   go    可用 - the output may be used
-  wait  阻擋, but as expected: alignment in progress or ready still settling; follow the instruction
-  stop  阻擋 because something is wrong: data lost, fault, stale, flags, internal error
-  idle  阻擋 with nothing to judge yet, or AIO NAV stopped on purpose
+  wait  不可用, but as expected: alignment in progress or ready still settling; follow the instruction
+  stop  不可用 because something is wrong: data lost, fault, stale, flags, internal error
+  idle  不可用 with nothing to judge yet, or AIO NAV stopped on purpose
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ _STATE_HEADLINE = {
 
 class Band(NamedTuple):
     kind: str           # go | wait | stop | idle
-    word: str           # 可用 | 阻擋 in the current language
+    word: str           # 可用 | 不可用 in the current language
     headline: str       # one short line: why, in the operator's words
 
 

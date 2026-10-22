@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 AVOID = {"橫滾": "滾轉", "浮點解": "浮動解", "槓桿臂": "桿臂", "接收器": "接收機", "校正資料": "修正資料",
          "坐標": "座標", "分米": "公寸", "週內秒": "週秒", "時間戳(?!記)": "時間戳記", "回放": "重播",
          "重啟": "重新啟動", "操作員": "操作人員", "入站": "輸入", "運行": "運作或執行", "年齡": "延遲",
-         "過舊": "延遲", "精度": "準確度、精密度或不確定度"}
+         "過舊": "延遲", "精度": "準確度、精密度或不確定度", "阻擋": "不可用"}
 
 
 def fields(text: str) -> set:  # type: ignore[type-arg]
@@ -60,7 +60,7 @@ def test_protocol_vocabulary_is_complete() -> None:
 
 def test_switching_language() -> None:
     v = Verdict(False, Reason.NOT_READY, P.STATES.index("MOVE_STRAIGHT"), 1 << 8 | 1 << 9)
-    assert v.word == "阻擋" and v.text == "狀態不是就緒：直線行駛（需要直線行駛、需要精對準）"
+    assert v.word == "不可用" and v.text == "狀態不是就緒：直線行駛（需要直線行駛、需要精對準）"
     assert i18n.set_language("en") == "en"
     assert v.word == "Blocked"
     assert v.text == "Status is not ready: Drive straight (Must drive straight, Fine alignment needed)"
