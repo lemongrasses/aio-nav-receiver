@@ -17,10 +17,10 @@ with the same rules as web_monitor `nav/vehicle_gate.py`, and it shows the opera
 
 | | Requirement |
 |---|---|
-| F1 | Show 可用 / 阻擋 and the first failing rule, plus the operator instruction from 0x05 |
+| F1 | Show 可用 / 不可用 and the first failing rule, plus the operator instruction from 0x05 |
 | F2 | Show the 0x04 and 0x05 contents, packet counters, rate and the trajectory |
 | F3 | Record to `.bin` (raw packets), `_nav.csv` and `_events.log`; replay `.bin` at 1–10× |
-| N1 | **Fail safe.** Any missing input, bad packet, stalled or crashed engine thread, or full disk shows 阻擋, never a stale 可用. A frozen window thread is the one exception (§5) |
+| N1 | **Fail safe.** Any missing input, bad packet, stalled or crashed engine thread, or full disk shows 不可用, never a stale 可用. A frozen window thread is the one exception (§5) |
 | N2 | **Exact verdicts.** Transition times and 累計可用 do not depend on screen refresh, window dragging, slow storage or replay speed |
 | N3 | Windows, Linux and macOS laptops; one portable file each; no Python on the target |
 | N4 | Bounded memory over an 8-hour session; recordings readable forever, including old ones |
@@ -35,7 +35,7 @@ so the design spends nothing on throughput and everything on correctness and iso
                  ┌──────────── engine thread ────────────┐          ┌──── Tk main thread ────┐
  UDP :9000 ──►   │ Source ──► Monitor                    │ publish  │ MainWindow (10 Hz)     │
  .bin file ──►   │  live /     Gate (pure rules),        ├────────► │  reads latest Snapshot │
-                 │  replay     deadlines, totals, track  │ Snapshot │  watchdog: stale = 阻擋 │
+                 │  replay     deadlines, totals, track  │ Snapshot │  watchdog: stale=不可用│
                  └───────────────────┬───────────────────┘ (frozen) │  commands ──► queue    │
                                      │ put_nowait (bounded)         └────────────────────────┘
                           ┌──────────▼──────────┐
@@ -76,8 +76,8 @@ So a live run, a 10× replay and the headless `check` command all give **identic
 same packets. The tests assert this.
 
 One difference is inherent: a replay starts with no history. If a recording began in the middle of
-a READY session, the replay sees its first READY at the start of the file and shows 阻擋 (READY
-尚未穩定) for the first ~2 s. The live run was already 可用 at that moment.
+a READY session, the replay sees its first READY at the start of the file and shows 不可用 (就緒尚未穩定)
+for the first ~2 s. The live run was already 可用 at that moment.
 
 A source reports a *horizon* with each batch: the time up to which it has delivered every packet. The
 engine advances only to the horizon, so a replay never evaluates past a packet it hasn't fed yet.
@@ -107,10 +107,10 @@ engine advances only to the horizon, so a replay never evaluates past a packet i
 | Second sender in one session (sequence back > 5) | Authorisation cleared | Gate; counted as 兩個發送者 |
 | Port already in use | No data | Bind error shown in the red band; monitor keeps running on the ports that did bind |
 | Exception in the engine thread | Engine stops | Logged; snapshot carries `engine_error`; band forced red |
-| Engine hangs, or the snapshot is older than 0.5 s | Stale screen | UI watchdog forces 阻擋 "監看程式沒有回應" |
+| Engine hangs, or the snapshot is older than 0.5 s | Stale screen | UI watchdog forces 不可用 "監看程式沒有回應" |
 | Exception while rendering | One frame lost | Logged; the band is forced red; the next frame is always scheduled (`finally`) |
 | USB pulled or disk full while recording | Recording stops | `OSError` caught on the recorder thread; recording closed; error shown; **monitoring continues** |
-| Storage stalls (slow USB stick) | None for monitoring | Writes queue up on the recorder thread; packets keep their true receive times. If the queue fills (about 5 minutes behind), recording stops with "記錄裝置太慢" |
+| Storage stalls (slow USB stick) | None for monitoring | Writes queue up on the recorder thread; packets keep their true receive times. If the queue fills (about 5 minutes behind), recording stops with "儲存裝置太慢" |
 | Window thread frozen (dragging the window, a modal dialog, opening a long recording for replay) | Screen not updated | The watchdog runs on that thread and cannot fire, so the last frame stays up. The engine and the recording are unaffected, and the next frame is correct |
 | Power loss while recording | Last ≤ 1 s lost | Files flushed every second; the reader drops a truncated last record |
 | Corrupt settings file | Defaults used | Each bad field falls back to its default and the problem is logged |

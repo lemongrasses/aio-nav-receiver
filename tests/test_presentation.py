@@ -14,13 +14,13 @@ from test_ui_smoke import ready_monitor, snap_from
 
 def test_band_kinds() -> None:
     assert V.band(snap_from(Monitor(Settings().gate_config()), 0.0), None) == (
-        "idle", "阻擋", "還沒收到任何封包")
+        "idle", "不可用", "還沒收到任何封包")
     assert V.band(snap_from(ready_monitor(), 2.99), None).kind == "go"
     for state, kind in (("KEEP_STILL", "wait"), ("REFINING", "wait"), ("BOOTING", "wait"),
                         ("DEGRADED", "stop"), ("FAULT", "stop"), ("MAINTENANCE", "idle")):
         b = V.band(snap_from(ready_monitor(state=P.STATES.index(state)), 2.99), None)
         assert b.kind == kind, state
-    assert V.band(snap_from(ready_monitor(1.5), 1.49), None) == ("wait", "阻擋", "就緒確認中（需穩定 2 秒）")
+    assert V.band(snap_from(ready_monitor(1.5), 1.49), None) == ("wait", "不可用", "就緒確認中（需穩定 2 秒）")
     stale = V.band(snap_from(ready_monitor(), 3.6), None)
     assert stale.kind == "stop" and "0x04 中斷" in stale.headline
     lost = V.band(snap_from(ready_monitor(), 8.0), None)
@@ -31,7 +31,7 @@ def test_band_kinds() -> None:
 def test_nav_without_status() -> None:
     mon = Monitor(Settings().gate_config())
     mon.feed(nav(1.0), 0.0, "a")
-    assert V.band(snap_from(mon, 0.1), None) == ("stop", "阻擋", "沒有狀態封包 0x05")
+    assert V.band(snap_from(mon, 0.1), None) == ("stop", "不可用", "沒有狀態封包 0x05")
 
 
 def test_rail() -> None:

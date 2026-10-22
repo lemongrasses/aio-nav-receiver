@@ -98,7 +98,7 @@ def band(win: MainWindow) -> str:
 def test_every_state_renders(window: MainWindow) -> None:
     mon = Monitor(Settings().gate_config())
     window.render(snap_from(mon, 0.0))
-    assert band(window) == f"阻擋 還沒收到任何封包 {theme.IDLE}"
+    assert band(window) == f"不可用 還沒收到任何封包 {theme.IDLE}"
     assert window.guidance.title.cget("text") == "讓 AIO NAV 把資料送到這台電腦"
 
     mon.feed(nav(10.0), 0.1, "192.168.116.1")
@@ -108,7 +108,7 @@ def test_every_state_renders(window: MainWindow) -> None:
     aligning = ready_monitor(state=4, action=2)                      # MOVE_STRAIGHT, DRIVE_STRAIGHT
     window.render(snap_from(aligning, 2.99))
     assert "對準第 2 階段" in band(window) and theme.WAIT in band(window)
-    assert window.guidance.title.cget("text") == "在安全空曠處等速直線行駛"
+    assert window.guidance.title.cget("text") == "在安全、空曠的區域以穩定速度直線行駛"
 
     s = snap_from(ready_monitor(), 2.99)
     window.render(s)

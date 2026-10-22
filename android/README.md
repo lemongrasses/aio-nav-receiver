@@ -5,7 +5,7 @@ navigation output may be used. Same rules as the desktop app (`src/aio_receiver/
 iPhone app; monitoring only, the app never sends anything back. Native Kotlin + Jetpack Compose,
 Android 8.0 (API 26) or newer.
 
-- **Status**: green 可用 / red 阻擋 with the reason, dashboard state, operator instruction, navigation
+- **Status**: green 可用 / red 不可用 with the reason, dashboard state, operator instruction, navigation
   values (position, heading, speed, σ, flags, data age, receive rate), the 0x05 inhibit/health bits and
   packet statistics.
 - **Charts**: last 1 / 5 / 10 minutes: status timeline (verdict + dashboard state), position σ, heading σ,
@@ -15,7 +15,7 @@ Android 8.0 (API 26) or newer.
 - **Settings**: this phone's IP addresses and Wi-Fi state, ports, 0x05 message id, "accept only source
   IP", rule thresholds, keep screen on, background receiving, apply / restore defaults / clear.
 - **Background**: unlike iOS, Android keeps receiving when the app is not on screen. A foreground
-  service (type `connectedDevice`) shows 可用 / 阻擋 in an ongoing green / red notification; its **Stop**
+  service (type `connectedDevice`) shows 可用 / 不可用 in an ongoing green / red notification; its **Stop**
   button ends it. Turn off "Keep receiving in the background" to receive only while the app is on screen.
 
 **Language:** one language at a time, 繁體中文 (`res/values-zh-rTW`) or English (`res/values`), like the
@@ -87,7 +87,7 @@ adb emu redir add udp:9000:9000          # forward the Mac's UDP 9000 into the e
 python ../tools/fake_sender.py --host 127.0.0.1 --port 9000
 ```
 
-The fake sender cycles KEEP_STILL → MOVE_STRAIGHT → REFINING → READY (2 s later 可用) → no 0x05 (阻擋)
+The fake sender cycles KEEP_STILL → MOVE_STRAIGHT → REFINING → READY (2 s later 可用) → no 0x05 (不可用)
 every 55 s. In the emulator the packets arrive from `10.0.2.2`.
 
 ## Use it with the real device
@@ -100,7 +100,7 @@ every 55 s. In the emulator the packets arrive from `10.0.2.2`.
 3. On the Jetson, the relay copies every packet to the vehicle receiver (`192.168.116.154:9000`) and to
    `<phone IP>:9000`. Turn on `status_udp.enabled` in the dashboard config for 0x05.
 4. In the app, enter the Jetson's address as the phone sees it (usually `10.42.0.1`) under "Accept only
-   source IP", then Apply. Allow notifications when asked, so the background 可用 / 阻擋 shows.
+   source IP", then Apply. Allow notifications when asked, so the background 可用 / 不可用 shows.
 
 To install on a phone: download `AIO_NAV_Receiver-android-<version>.apk` from the GitHub Release and open
 it on the phone (allow "Install unknown apps" for the browser or file manager when Android asks). Or turn

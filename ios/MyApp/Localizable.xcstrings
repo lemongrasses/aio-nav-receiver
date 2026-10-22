@@ -7,7 +7,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "0x04 年齡"
+            "value": "0x04 延遲"
           }
         }
       }
@@ -17,7 +17,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "0x04 資料年齡"
+            "value": "0x04 資料延遲"
           }
         }
       }
@@ -37,7 +37,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "0x04 埠"
+            "value": "0x04 連接埠"
           }
         }
       }
@@ -67,7 +67,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "0x05 埠"
+            "value": "0x05 連接埠"
           }
         }
       }
@@ -127,7 +127,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "本次輔助更新"
+            "value": "本時刻的輔助更新"
           }
         }
       }
@@ -147,7 +147,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "可能有其他程式占用此埠，請到「設定」更換埠號。"
+            "value": "可能有其他程式占用此連接埠，請到「設定」更換埠號。"
           }
         }
       }
@@ -177,7 +177,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "阻擋條件"
+            "value": "不可用原因"
           }
         }
       }
@@ -237,7 +237,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dashboard 運行時間"
+            "value": "儀表板運作時間"
           }
         }
       }
@@ -247,7 +247,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "資料年齡"
+            "value": "資料延遲"
           }
         }
       }
@@ -317,7 +317,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "水平速度"
+            "value": "水平速率"
           }
         }
       }
@@ -437,7 +437,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "接收中，UDP 埠"
+            "value": "接收中，UDP 連接埠"
           }
         }
       }
@@ -487,7 +487,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "導航最大年齡"
+            "value": "導航最大延遲"
           }
         }
       }
@@ -577,7 +577,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "在裝置的 Maintenance → AIO NAV config 把 output_udp 設成這支 iPhone 的位址與 0x04 埠，存檔後重啟 AIO NAV。output_udp 只有一個目的地，設定後 iPhone 會取代原本的接收端。"
+            "value": "在裝置的維護頁面 → AIO NAV config 把 output_udp 設成這支 iPhone 的位址與 0x04 連接埠，存檔後重新啟動 AIO NAV。output_udp 只有一個目的地，設定後 iPhone 會取代原本的接收端。"
           }
         }
       }
@@ -677,7 +677,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "橫滾 / 俯仰"
+            "value": "滾轉 / 俯仰"
           }
         }
       }
@@ -707,7 +707,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "0x05 用另一個埠"
+            "value": "0x05 使用另一個連接埠"
           }
         }
       }
@@ -757,7 +757,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "速度"
+            "value": "速率"
           }
         }
       }
@@ -817,7 +817,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "狀態年齡"
+            "value": "狀態延遲"
           }
         }
       }
@@ -887,7 +887,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "UDP 沒有驗證，任何能送到這個埠的人都能偽造就緒狀態。請填入裝置的 IP，其他來源的封包只計數、不處理。"
+            "value": "UDP 沒有驗證，任何能送到這個連接埠的人都能偽造就緒狀態。請填入裝置的 IP，其他來源的封包只計數、不處理。"
           }
         }
       }
@@ -947,7 +947,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "iOS 會暫停背景中的 App，所以只有在本 App 顯示於螢幕上時才會監控。"
+            "value": "iOS 會暫停背景中的 App，所以只有在本 App 顯示於螢幕上時才會監看。"
           }
         }
       }

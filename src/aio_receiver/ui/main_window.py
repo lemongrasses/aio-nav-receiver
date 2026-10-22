@@ -1,7 +1,7 @@
 """Main window: composes the parts and renders the engine's latest snapshot every 100 ms.
 
 Fail safe: an engine error, a bind error, a snapshot older than STALE_AFTER or an exception while
-rendering all show 阻擋. The next frame is always scheduled, whatever happened in this one.
+rendering all show 不可用. The next frame is always scheduled, whatever happened in this one.
 
 Keys: Ctrl+R record, Ctrl+O open a recording, F11 full screen, Esc leave full screen.
 """

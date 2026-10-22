@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- **不可用 instead of 阻擋.** The verdict reads 可用 / 不可用 (may the navigation output be used?),
+  and the 0x05 blocking conditions are 不可用原因, on the screen, in the notification, the window
+  title and the events log. English (Usable / Blocked) is unchanged.
+- **The 0x05 words mean what the dashboard means**, checked against the shared glossary's protocol
+  tables: BOOTING 開機中 (was 啟動中, the dashboard's word for AIO NAV starting), NAV_STARTING
+  AIO NAV 啟動中, MAINTENANCE 已停止 / Stopped (was 維護 / Maintenance: it is an operator stop, not a
+  service need), the HEADING lamp 初始航向, 到車端的路由 / Route to the vehicle (was 對外路由 /
+  External route), 操作人員已停止 / Stopped by an operator (was 維護暫停 / Maintenance hold), 管理權.
+  The stop instruction names both buttons the dashboard can show: 「恢復」或「啟動」 / Resume or Start.
+  A DEGRADED state reads 就緒後失去必要條件 / A required condition was lost after ready (any required
+  condition, not only alignment).
+- **繁體中文 wording shared with web_monitor** (`docs/TERMINOLOGY.zh-TW.md`, the same file in both
+  repositories), on the desktop, iPhone and Android alike: 滾轉 (roll, was 橫滾), RTK 浮動解 (was
+  浮點解), 水平速率 (ground speed), GPS 週秒, 延遲 for a data age or stale data (was 年齡 / 過舊),
+  連接埠 (port), 儀表板 (dashboard), 重新啟動; the operator instructions read as on the dashboard's
+  pages. A test keeps the replaced words out.
+
+
 ## 1.2.0 — 2026-10-21
 
 ### Changed

@@ -131,14 +131,14 @@
     <string-array name="state_names">
         <item>Booting</item>
         <item>Checking</item>
-        <item>Starting navigation</item>
+        <item>Starting AIO NAV</item>
         <item>Keep still</item>
         <item>Drive straight</item>
         <item>Refining</item>
         <item>Ready</item>
         <item>Degraded</item>
         <item>Fault</item>
-        <item>Maintenance</item>
+        <item>Stopped</item>
     </string-array>
     <string-array name="action_texts">
         <item>Nothing to do</item>
@@ -147,7 +147,7 @@
         <item>Keep driving normally where GNSS is available</item>
         <item>Stop using navigation and follow the vehicle\'s safety procedure</item>
         <item>Maintenance is needed</item>
-        <item>Stopped. Press Resume to continue</item>
+        <item>Stopped. Press Resume or Start on the dashboard\'s Overview page</item>
     </string-array>
     <string-array name="gnss_quality_names">
         <item>Unknown</item>
@@ -168,7 +168,7 @@
         <item>Heading valid</item>
         <item>Fine alignment done</item>
         <item>DSO OK</item>
-        <item>External route OK</item>
+        <item>Route to the vehicle OK</item>
         <item>RTK corrections OK</item>
         <item>Storage writable</item>
         <item>Vehicle acknowledged</item>
@@ -188,10 +188,10 @@
         <item>Must drive straight</item>
         <item>Fine alignment needed</item>
         <item>DSO not ready</item>
-        <item>External route down</item>
+        <item>No route to the vehicle</item>
         <item>RTK corrections lost</item>
         <item>Storage not writable</item>
-        <item>Maintenance hold</item>
+        <item>Stopped by an operator</item>
         <item>Startup timed out</item>
         <item>Ownership conflict</item>
         <item>Internal fault</item>

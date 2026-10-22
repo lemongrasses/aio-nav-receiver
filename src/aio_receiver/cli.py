@@ -2,7 +2,7 @@
 
     aio-receiver                         open the monitor (live)
     aio-receiver --replay FILE.bin       open the monitor replaying a recording
-    aio-receiver check FILE.bin          print the 可用 / 阻擋 changes of a recording (no window)
+    aio-receiver check FILE.bin          print the 可用 / 不可用 changes of a recording (no window)
     aio-receiver export FILE.bin         write FILE_nav.csv from a recording
 """
 

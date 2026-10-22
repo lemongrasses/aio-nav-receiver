@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 /**
  * Keeps monitoring while the app is not on screen (iOS cannot do this): a foreground service of type
  * connectedDevice (the phone receives from an external device, the Jetson, over Wi-Fi) with an ongoing
- * notification that shows 可用 / 阻擋. A partial wake lock and a Wi-Fi lock keep 100 Hz arriving with the
+ * notification that shows 可用 / 不可用. A partial wake lock and a Wi-Fi lock keep 100 Hz arriving with the
  * screen off.
  */
 class MonitorService : Service() {

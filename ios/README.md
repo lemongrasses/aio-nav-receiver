@@ -4,7 +4,7 @@ Receives the AIO NAV 0x04 and dashboard 0x05 UDP packets on the iPhone and shows
 navigation output may be used. Same rules as the desktop app (`src/aio_receiver/core/gate.py`, the
 spec "AIO NAV UDP 接收端 App 開發規格"); monitoring only, the app never sends anything back.
 
-- **Status**: green 可用 / red 阻擋 with the reason, dashboard state, operator instruction,
+- **Status**: green 可用 / red 不可用 with the reason, dashboard state, operator instruction,
   navigation values (position, heading, speed, σ, flags, data age, receive rate), the 0x05
   inhibit/health bits and packet statistics.
 - **Charts**: last 1 / 5 / 10 minutes: status timeline (verdict + dashboard state), position σ,

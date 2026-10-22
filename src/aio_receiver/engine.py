@@ -2,7 +2,7 @@
 
 Only this thread touches the sockets, the replay file, the monitor and the recording files. The UI
 reads `engine.snapshot` (one reference, replaced atomically) and sends commands through a queue.
-Any failure inside it ends in a snapshot that says so, which the UI shows as 阻擋.
+Any failure inside it ends in a snapshot that says so, which the UI shows as 不可用.
 """
 
 from __future__ import annotations
@@ -88,7 +88,7 @@ class Snapshot:
 
     @property
     def failure(self) -> Optional[str]:
-        """A fault that overrides the verdict: the screen must show 阻擋 with this text (current language)."""
+        """A fault that overrides the verdict: the screen must show 不可用 with this text (current language)."""
         if self.engine_error:
             return i18n.t("fail.internal", error=self.engine_error)
         if self.source_errors:
