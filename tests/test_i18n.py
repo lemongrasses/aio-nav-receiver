@@ -1,8 +1,10 @@
-"""One language at a time: the table is complete, and nothing outside it leaks into the other language."""
+"""One language at a time: the table is complete, nothing outside it leaks into the other language, and the
+Chinese follows docs/TERMINOLOGY.zh-TW.md (shared with web_monitor) on the desktop, Android and iOS alike."""
 
 from __future__ import annotations
 
 import errno
+import json
 import re
 import string
 from pathlib import Path
@@ -15,6 +17,12 @@ from aio_receiver.core.gate import Reason, Verdict
 from aio_receiver.engine import _event_text
 
 CJK = re.compile(r"[　-〿一-鿿＀-￯]")
+ROOT = Path(__file__).resolve().parent.parent
+# Words docs/TERMINOLOGY.zh-TW.md replaces (the same list is checked in web_monitor), and by what.
+AVOID = {"橫滾": "滾轉", "浮點解": "浮動解", "槓桿臂": "桿臂", "接收器": "接收機", "校正資料": "修正資料",
+         "坐標": "座標", "分米": "公寸", "週內秒": "週秒", "時間戳(?!記)": "時間戳記", "回放": "重播",
+         "重啟": "重新啟動", "操作員": "操作人員", "入站": "輸入", "運行": "運作或執行", "年齡": "延遲",
+         "過舊": "延遲", "精度": "準確度、精密度或不確定度"}
 
 
 def fields(text: str) -> set:  # type: ignore[type-arg]
@@ -26,6 +34,19 @@ def test_every_message_exists_in_both_languages_with_the_same_fields() -> None:
         assert zh and en, key
         assert fields(zh) == fields(en), key
         assert not CJK.search(en), f"Chinese in the English text of {key}"
+
+
+def test_chinese_follows_the_shared_terminology() -> None:
+    zh = [pair[0] for pair in i18n._T.values()] + [pair[0] for pair in i18n._STATES.values()]
+    zh += [pair[0] for table in (i18n._ACTIONS.values(), i18n._LAMPS.values()) for pair in table]
+    zh += [pair[0] for table in (i18n._GNSS_QUALITY, i18n._HEALTH, i18n._INHIBIT) for pair in table]
+    zh += re.findall(r"<(?:string|item)\b[^>]*>([^<]*)<", (ROOT / "android/app/src/main/res/values-zh-rTW/strings.xml")
+                     .read_text(encoding="utf-8"))
+    catalog = json.loads((ROOT / "ios/MyApp/Localizable.xcstrings").read_text(encoding="utf-8"))
+    zh += [e["localizations"]["zh-Hant"]["stringUnit"]["value"] for e in catalog["strings"].values()]
+    zh += re.findall(r'\(\s*"([^"]*)"\s*,', (ROOT / "ios/MyApp/Protocol/Vocabulary.swift").read_text(encoding="utf-8"))
+    assert len(zh) > 400
+    assert sorted({f"{w} -> {AVOID[w]}: {t}" for t in zh for w in AVOID if re.search(w, t)}) == []
 
 
 def test_protocol_vocabulary_is_complete() -> None:
@@ -51,7 +72,7 @@ def test_switching_language() -> None:
 
 def test_messages_render_when_shown_not_when_made() -> None:
     m = i18n.msg("fail.bind", addr="0.0.0.0:9000", error=i18n.os_error(OSError(errno.EADDRINUSE, "x")))
-    assert str(m) == "無法監聽 0.0.0.0:9000：這個埠已被其他程式使用"
+    assert str(m) == "無法監聽 0.0.0.0:9000：這個連接埠已被其他程式使用"
     i18n.set_language("en")
     assert str(m) == "Cannot listen on 0.0.0.0:9000: the port is in use by another program"
     assert str(i18n.os_error(OSError(errno.ENOSPC, "x"))) == "the disk is full"

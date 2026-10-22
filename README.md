@@ -58,6 +58,8 @@ dark bar across the top says it is not live data and holds the speed and **回�
 **Language:** the program shows one language at a time, 繁體中文 or English. It follows the operating
 system until you choose one in **設定 / Settings → 顯示 / Display → 語言 / Language**, and the change
 applies at once. Standard acronyms (GNSS, IMU, RTK), units and packet ids (0x04) are the same in both.
+The Chinese wording is shared word for word with the dashboard (web_monitor):
+[docs/TERMINOLOGY.zh-TW.md](docs/TERMINOLOGY.zh-TW.md).
 
 Keys: **Ctrl+R** start / stop recording, **Ctrl+O** open a recording, **F11** full screen, **Esc** leave
 full screen. The window sizes itself to the screen and scales text down on small or highly scaled

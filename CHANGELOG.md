@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- **繁體中文 wording shared with web_monitor** (`docs/TERMINOLOGY.zh-TW.md`, the same file in both
+  repositories), on the desktop, iPhone and Android alike: 滾轉 (roll, was 橫滾), RTK 浮動解 (was
+  浮點解), 水平速率 (ground speed), GPS 週秒, 延遲 for a data age or stale data (was 年齡 / 過舊),
+  連接埠 (port), 儀表板 (dashboard), 重新啟動; the operator instructions read as on the dashboard's
+  pages. A test keeps the replaced words out.
+
+
 ## 1.2.0 — 2026-10-21
 
 ### Changed

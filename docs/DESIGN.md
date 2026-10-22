@@ -110,7 +110,7 @@ engine advances only to the horizon, so a replay never evaluates past a packet i
 | Engine hangs, or the snapshot is older than 0.5 s | Stale screen | UI watchdog forces 阻擋 "監看程式沒有回應" |
 | Exception while rendering | One frame lost | Logged; the band is forced red; the next frame is always scheduled (`finally`) |
 | USB pulled or disk full while recording | Recording stops | `OSError` caught on the recorder thread; recording closed; error shown; **monitoring continues** |
-| Storage stalls (slow USB stick) | None for monitoring | Writes queue up on the recorder thread; packets keep their true receive times. If the queue fills (about 5 minutes behind), recording stops with "記錄裝置太慢" |
+| Storage stalls (slow USB stick) | None for monitoring | Writes queue up on the recorder thread; packets keep their true receive times. If the queue fills (about 5 minutes behind), recording stops with "儲存裝置太慢" |
 | Window thread frozen (dragging the window, a modal dialog, opening a long recording for replay) | Screen not updated | The watchdog runs on that thread and cannot fire, so the last frame stays up. The engine and the recording are unaffected, and the next frame is correct |
 | Power loss while recording | Last ≤ 1 s lost | Files flushed every second; the reader drops a truncated last record |
 | Corrupt settings file | Defaults used | Each bad field falls back to its default and the problem is logged |

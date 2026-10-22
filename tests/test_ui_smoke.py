@@ -108,7 +108,7 @@ def test_every_state_renders(window: MainWindow) -> None:
     aligning = ready_monitor(state=4, action=2)                      # MOVE_STRAIGHT, DRIVE_STRAIGHT
     window.render(snap_from(aligning, 2.99))
     assert "對準第 2 階段" in band(window) and theme.WAIT in band(window)
-    assert window.guidance.title.cget("text") == "在安全空曠處等速直線行駛"
+    assert window.guidance.title.cget("text") == "在安全、空曠的區域以穩定速度直線行駛"
 
     s = snap_from(ready_monitor(), 2.99)
     window.render(s)

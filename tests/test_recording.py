@@ -128,4 +128,4 @@ def test_background_writer_reports_failures_instead_of_raising(tmp_path: Path, m
     slow = BackgroundWriter(tmp_path, 0.0, {})
     for i in range(10):
         slow.packet(i, None, 0, b"x", None)
-    assert str(slow.error) == "記錄裝置太慢，已停止記錄"
+    assert str(slow.error) == "儲存裝置太慢，已停止記錄"

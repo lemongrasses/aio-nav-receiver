@@ -192,7 +192,7 @@ def test_port_in_use_is_an_error_not_a_crash() -> None:
     second = UdpSource("127.0.0.1", [port])
     try:
         assert first.errors == [] and len(second.errors) == 1
-        assert str(second.errors[0]) == f"無法監聽 127.0.0.1:{port}：這個埠已被其他程式使用"   # not the OS's text
+        assert str(second.errors[0]) == f"無法監聽 127.0.0.1:{port}：這個連接埠已被其他程式使用"   # not the OS's text
         packets: List[object] = []
         packets, _ = second.poll(0.01)
         assert packets == []

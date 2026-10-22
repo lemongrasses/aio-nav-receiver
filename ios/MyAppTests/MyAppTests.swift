@@ -497,7 +497,7 @@ struct VocabularyTests {
     }
 
     @Test func systemErrorsAreWorded() {
-        #expect(Vocabulary.bindError(port: 9000, code: EADDRINUSE, .zhHant) == "無法監聽 0.0.0.0:9000：這個埠已被其他程式使用")
+        #expect(Vocabulary.bindError(port: 9000, code: EADDRINUSE, .zhHant) == "無法監聽 0.0.0.0:9000：這個連接埠已被其他程式使用")
         #expect(Vocabulary.bindError(port: 9000, code: EACCES, .en) == "Cannot listen on 0.0.0.0:9000: permission denied")
         #expect(Vocabulary.bindError(port: 1, code: EIO, .en).hasPrefix("Cannot listen on 0.0.0.0:1: system error \(EIO): "))
     }
