@@ -514,3 +514,63 @@ struct VocabularyTests {
         #expect(a.needsRestart(comparedTo: b))
     }
 }
+
+/// Texts the desktop's glossary test does not read: what iOS itself shows from Info.plist, and
+/// Chinese written directly in Swift. docs/TERMINOLOGY.zh-TW.md lists the words not to use.
+struct SystemTextTests {
+
+    static let repo = Fixtures.folder.deletingLastPathComponent()
+
+    static func read(_ path: String) throws -> String {
+        try String(contentsOf: repo.appendingPathComponent(path), encoding: .utf8)
+    }
+
+    /// The glossary's 不使用的詞 table: each word not to use, with the words that replace it.
+    static func bannedWords() throws -> [(word: String, replacements: [String])] {
+        let glossary = try read("docs/TERMINOLOGY.zh-TW.md")
+        let table = try #require(glossary.range(of: "## 不使用的詞")).upperBound
+        return glossary[table...].split(separator: "\n")
+            .filter { $0.hasPrefix("| ") && !$0.hasPrefix("| 不使用") && !$0.hasPrefix("|---") }
+            .map { row in row.split(separator: "|", omittingEmptySubsequences: false).map { $0.trimmingCharacters(in: .whitespaces) } }
+            .filter { $0.count > 2 && !$0[1].isEmpty }
+            .map { ($0[1], $0[2].components(separatedBy: "、")) }
+    }
+
+    static func count(_ word: String, in text: String) -> Int {
+        text.components(separatedBy: word).count - 1
+    }
+
+    @Test func infoPlistTextIsOneLanguageAtATime() throws {
+        let cjk = try Regex(#"[\p{Han}]"#)
+        let project = try Self.read("ios/MyApp.xcodeproj/project.pbxproj")
+        for line in project.split(separator: "\n") where line.contains("INFOPLIST_KEY_NS") {
+            #expect(line.firstMatch(of: cjk) == nil, "Chinese belongs in InfoPlist.xcstrings: \(line)")
+        }
+        let catalog = try #require(JSONSerialization.jsonObject(
+            with: Data(Self.read("ios/MyApp/InfoPlist.xcstrings").utf8)) as? [String: Any])
+        let strings = try #require(catalog["strings"] as? [String: [String: Any]])
+        #expect(strings["NSLocalNetworkUsageDescription"] != nil)
+        for (key, entry) in strings {
+            let localizations = entry["localizations"] as? [String: [String: [String: String]]]
+            let en = try #require(localizations?["en"]?["stringUnit"]?["value"], "\(key) en")
+            let zh = try #require(localizations?["zh-Hant"]?["stringUnit"]?["value"], "\(key) zh-Hant")
+            #expect(en.firstMatch(of: cjk) == nil, "\(key)")
+            #expect(zh.firstMatch(of: cjk) != nil, "\(key)")
+        }
+    }
+
+    @Test func glossaryWordsNotUsedOutsideTheCatalog() throws {
+        let banned = try Self.bannedWords()
+        #expect(banned.contains { $0.word == "阻擋" } && banned.count >= 20)
+        let swift = try FileManager.default.subpathsOfDirectory(atPath: Self.repo.appendingPathComponent("ios/MyApp").path)
+            .filter { $0.hasSuffix(".swift") }.map { "ios/MyApp/\($0)" }
+        for path in swift + ["ios/MyApp/InfoPlist.xcstrings"] {
+            let text = try Self.read(path)
+            for (word, replacements) in banned {
+                // As the glossary says: a banned word inside its replacement (時間戳 in 時間戳記) is fine.
+                let inside = replacements.filter { $0.contains(word) }.reduce(0) { $0 + Self.count($1, in: text) }
+                #expect(Self.count(word, in: text) == inside, "\(path) uses \(word)")
+            }
+        }
+    }
+}

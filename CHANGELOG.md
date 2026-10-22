@@ -19,6 +19,9 @@
   浮點解), 水平速率 (ground speed), GPS 週秒, 延遲 for a data age or stale data (was 年齡 / 過舊),
   連接埠 (port), 儀表板 (dashboard), 重新啟動; the operator instructions read as on the dashboard's
   pages. A test keeps the replaced words out.
+- **iPhone: the Local Network permission message in one language.** iOS showed English and Chinese
+  together; it now comes from `ios/MyApp/InfoPlist.xcstrings` in the iPhone's language. The iOS
+  tests also keep the glossary's replaced words out of this text and out of Chinese written in Swift.
 
 
 ## 1.2.0 — 2026-10-21
