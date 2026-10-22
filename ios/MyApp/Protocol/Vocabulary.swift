@@ -43,11 +43,11 @@ nonisolated enum UILanguage: String, CaseIterable, Sendable {
 
 nonisolated enum Vocabulary {
     static let states: [String: (String, String)] = [
-        "BOOTING": ("啟動中", "Booting"), "CHECKING": ("檢查中", "Checking"),
-        "NAV_STARTING": ("導航啟動中", "Starting navigation"), "KEEP_STILL": ("保持靜止", "Keep still"),
+        "BOOTING": ("開機中", "Booting"), "CHECKING": ("檢查中", "Checking"),
+        "NAV_STARTING": ("AIO NAV 啟動中", "Starting AIO NAV"), "KEEP_STILL": ("保持靜止", "Keep still"),
         "MOVE_STRAIGHT": ("直線行駛", "Drive straight"), "REFINING": ("精對準", "Refining"),
         "READY": ("就緒", "Ready"), "DEGRADED": ("降級", "Degraded"), "FAULT": ("故障", "Fault"),
-        "MAINTENANCE": ("維護", "Maintenance"),
+        "MAINTENANCE": ("已停止", "Stopped"),
     ]
     static let actions: [String: (String, String)] = [
         "NONE": ("不需動作", "Nothing to do"),
@@ -57,7 +57,8 @@ nonisolated enum Vocabulary {
         "SAFE_STOP": ("停止使用導航，並依車輛安全程序處理",
                       "Stop using navigation and follow the vehicle's safety procedure"),
         "SERVICE_REQUIRED": ("需要維護", "Maintenance is needed"),
-        "MAINTENANCE_HOLD": ("已停止，按「恢復」後繼續", "Stopped. Press Resume to continue"),
+        "MAINTENANCE_HOLD": ("已停止，請在儀表板的總覽頁面按「恢復」或「啟動」",
+                             "Stopped. Press Resume or Start on the dashboard's Overview page"),
     ]
     static let gnssQuality: [(String, String)] = [
         ("未知", "Unknown"), ("無定位", "No fix"), ("單點定位", "Single point"),
@@ -66,27 +67,27 @@ nonisolated enum Vocabulary {
     static let health: [(String, String)] = [
         ("儀表板正常", "Dashboard OK"), ("設定有效", "Configuration valid"),
         ("IMU 資料正常", "IMU data OK"), ("GNSS 資料正常", "GNSS data OK"),
-        ("GNSS 品質足夠", "GNSS quality sufficient"), ("導航程式執行中", "Navigation process running"),
+        ("GNSS 品質足夠", "GNSS quality sufficient"), ("AIO NAV 執行中", "Navigation process running"),
         ("導航輸出正常", "Navigation output OK"), ("粗對準完成", "Coarse alignment done"),
-        ("航向有效", "Heading valid"), ("精對準完成", "Fine alignment done"), ("DSO 正常", "DSO OK"),
-        ("對外路由正常", "External route OK"), ("RTK 修正資料正常", "RTK corrections OK"),
-        ("儲存空間可寫入", "Storage writable"), ("車輛已確認", "Vehicle acknowledged"),
-        ("時間同步正常", "Time synchronised"), ("沒有重複的程式", "No duplicate process"),
+        ("初始航向完成", "Heading valid"), ("精對準完成", "Fine alignment done"), ("DSO 正常", "DSO OK"),
+        ("到車端的路由正常", "Route to the vehicle OK"), ("RTK 修正資料正常", "RTK corrections OK"),
+        ("儲存空間可寫入", "Storage writable"), ("車端已確認接收", "Vehicle acknowledged"),
+        ("時間同步正常", "Time synchronised"), ("AIO NAV 沒有重複執行", "No duplicate process"),
         ("Wi-Fi 正常", "Wi-Fi OK"),
     ]
     static let inhibit: [(String, String)] = [
         ("開機中", "Booting"), ("設定無效", "Configuration invalid"),
         ("IMU 資料缺少或延遲", "IMU data missing or stale"), ("GNSS 資料缺少或延遲", "GNSS data missing or stale"),
-        ("GNSS 品質不足", "GNSS quality too low"), ("導航程式未執行", "Navigation not running"),
+        ("GNSS 品質不足", "GNSS quality too low"), ("AIO NAV 未執行", "Navigation not running"),
         ("導航輸出延遲", "Navigation output stale"), ("需要保持靜止", "Must keep still"),
         ("需要直線行駛", "Must drive straight"), ("需要精對準", "Fine alignment needed"),
-        ("DSO 尚未就緒", "DSO not ready"), ("對外路由中斷", "External route down"),
+        ("DSO 尚未就緒", "DSO not ready"), ("沒有到車端的路由", "No route to the vehicle"),
         ("RTK 修正資料中斷", "RTK corrections lost"), ("儲存空間無法寫入", "Storage not writable"),
-        ("維護暫停", "Maintenance hold"), ("啟動逾時", "Startup timed out"), ("擁有權衝突", "Ownership conflict"),
+        ("操作人員已停止", "Stopped by an operator"), ("啟動逾時", "Startup timed out"), ("管理權衝突", "Ownership conflict"),
         ("內部錯誤", "Internal fault"),
     ]
     static let lamps: [String: (String, String)] = [
-        "ALIGN": ("粗對準", "Coarse aligned"), "HEADING": ("航向有效", "Heading valid"),
+        "ALIGN": ("粗對準", "Coarse aligned"), "HEADING": ("初始航向", "Heading valid"),
         "FINE": ("精對準", "Fine aligned"),
     ]
     /// Desktop _T keys used here: verdict words and reasons, "none", system errors.

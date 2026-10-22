@@ -106,11 +106,11 @@ def joined(items: Sequence[str]) -> str:
 
 # ---------------------------------------------------------------------- protocol vocabulary
 _STATES = {
-    "BOOTING": ("啟動中", "Booting"), "CHECKING": ("檢查中", "Checking"),
-    "NAV_STARTING": ("導航啟動中", "Starting navigation"), "KEEP_STILL": ("保持靜止", "Keep still"),
+    "BOOTING": ("開機中", "Booting"), "CHECKING": ("檢查中", "Checking"),
+    "NAV_STARTING": ("AIO NAV 啟動中", "Starting AIO NAV"), "KEEP_STILL": ("保持靜止", "Keep still"),
     "MOVE_STRAIGHT": ("直線行駛", "Drive straight"), "REFINING": ("精對準", "Refining"),
     "READY": ("就緒", "Ready"), "DEGRADED": ("降級", "Degraded"), "FAULT": ("故障", "Fault"),
-    "MAINTENANCE": ("維護", "Maintenance"),
+    "MAINTENANCE": ("已停止", "Stopped"),
 }
 _ACTIONS = {
     "NONE": ("不需動作", "Nothing to do"),
@@ -120,29 +120,30 @@ _ACTIONS = {
     "SAFE_STOP": ("停止使用導航，並依車輛安全程序處理",
                   "Stop using navigation and follow the vehicle's safety procedure"),
     "SERVICE_REQUIRED": ("需要維護", "Maintenance is needed"),
-    "MAINTENANCE_HOLD": ("已停止，按「恢復」後繼續", "Stopped. Press Resume to continue"),
+    "MAINTENANCE_HOLD": ("已停止，請在儀表板的總覽頁面按「恢復」或「啟動」",
+                         "Stopped. Press Resume or Start on the dashboard's Overview page"),
 }
 _GNSS_QUALITY = (("未知", "Unknown"), ("無定位", "No fix"), ("單點定位", "Single point"),
                  ("RTK 浮動解", "RTK float"), ("RTK 固定解", "RTK fixed"))
 _HEALTH = (("儀表板正常", "Dashboard OK"), ("設定有效", "Configuration valid"),
            ("IMU 資料正常", "IMU data OK"), ("GNSS 資料正常", "GNSS data OK"),
-           ("GNSS 品質足夠", "GNSS quality sufficient"), ("導航程式執行中", "Navigation process running"),
+           ("GNSS 品質足夠", "GNSS quality sufficient"), ("AIO NAV 執行中", "Navigation process running"),
            ("導航輸出正常", "Navigation output OK"), ("粗對準完成", "Coarse alignment done"),
-           ("航向有效", "Heading valid"), ("精對準完成", "Fine alignment done"), ("DSO 正常", "DSO OK"),
-           ("對外路由正常", "External route OK"), ("RTK 修正資料正常", "RTK corrections OK"),
-           ("儲存空間可寫入", "Storage writable"), ("車輛已確認", "Vehicle acknowledged"),
-           ("時間同步正常", "Time synchronised"), ("沒有重複的程式", "No duplicate process"),
+           ("初始航向完成", "Heading valid"), ("精對準完成", "Fine alignment done"), ("DSO 正常", "DSO OK"),
+           ("到車端的路由正常", "Route to the vehicle OK"), ("RTK 修正資料正常", "RTK corrections OK"),
+           ("儲存空間可寫入", "Storage writable"), ("車端已確認接收", "Vehicle acknowledged"),
+           ("時間同步正常", "Time synchronised"), ("AIO NAV 沒有重複執行", "No duplicate process"),
            ("Wi-Fi 正常", "Wi-Fi OK"))
 _INHIBIT = (("開機中", "Booting"), ("設定無效", "Configuration invalid"),
             ("IMU 資料缺少或延遲", "IMU data missing or stale"), ("GNSS 資料缺少或延遲", "GNSS data missing or stale"),
-            ("GNSS 品質不足", "GNSS quality too low"), ("導航程式未執行", "Navigation not running"),
+            ("GNSS 品質不足", "GNSS quality too low"), ("AIO NAV 未執行", "Navigation not running"),
             ("導航輸出延遲", "Navigation output stale"), ("需要保持靜止", "Must keep still"),
             ("需要直線行駛", "Must drive straight"), ("需要精對準", "Fine alignment needed"),
-            ("DSO 尚未就緒", "DSO not ready"), ("對外路由中斷", "External route down"),
+            ("DSO 尚未就緒", "DSO not ready"), ("沒有到車端的路由", "No route to the vehicle"),
             ("RTK 修正資料中斷", "RTK corrections lost"), ("儲存空間無法寫入", "Storage not writable"),
-            ("維護暫停", "Maintenance hold"), ("啟動逾時", "Startup timed out"), ("擁有權衝突", "Ownership conflict"),
-            ("內部錯誤", "Internal fault"))
-_LAMPS = {"ALIGN": ("粗對準", "Coarse aligned"), "HEADING": ("航向有效", "Heading valid"),
+            ("操作人員已停止", "Stopped by an operator"), ("啟動逾時", "Startup timed out"),
+            ("管理權衝突", "Ownership conflict"), ("內部錯誤", "Internal fault"))
+_LAMPS = {"ALIGN": ("粗對準", "Coarse aligned"), "HEADING": ("初始航向", "Heading valid"),
           "FINE": ("精對準", "Fine aligned")}
 
 
@@ -197,7 +198,7 @@ _T: Dict[str, Tuple[str, str]] = {
     "band.stage2": ("對準第 2 階段：直線行駛", "Alignment stage 2: drive straight"),
     "band.stage3": ("對準第 3 階段：精對準", "Alignment stage 3: fine alignment"),
     "band.ready_inhibit": ("已就緒，但仍有不可用原因", "Ready, but a blocking condition remains"),
-    "band.degraded": ("已失去對準條件", "Alignment conditions lost"),
+    "band.degraded": ("就緒後失去必要條件", "A required condition was lost after ready"),
     "band.fault": ("AIO NAV 故障", "AIO NAV fault"),
     "band.maintenance": ("AIO NAV 已停止", "AIO NAV stopped"),
     "band.state": ("狀態 {state}", "State {state}"),
@@ -240,7 +241,7 @@ _T: Dict[str, Tuple[str, str]] = {
     "rail.no_status": ("沒有最新的狀態封包", "No current status packet"),
     "rail.ready_inhibit": ("就緒，但仍有不可用原因", "Ready, but a blocking condition remains"),
     "rail.degraded": ("曾經就緒，之後失去條件", "Was ready, then lost a condition"),
-    "rail.fault": ("AIO NAV、其輸出或擁有權有問題", "Problem with AIO NAV, its output or its ownership"),
+    "rail.fault": ("AIO NAV、其輸出或管理權有問題", "Problem with AIO NAV, its output or its ownership"),
     "rail.stopped": ("操作人員已停止，或尚未啟動", "Stopped by the operator, or not started"),
     "rail.unknown": ("未知狀態 {state}", "Unknown state {state}"),
 

@@ -123,19 +123,19 @@
     <string name="channel_monitor_description">顯示導航輸出是否可以使用。</string>
     <string name="notifications_off">通知已關閉：App 在背景時不會顯示可用 / 不可用通知。</string>
     <string name="lamp_align">粗對準</string>
-    <string name="lamp_heading">航向有效</string>
+    <string name="lamp_heading">初始航向</string>
     <string name="lamp_fine">精對準</string>
     <string-array name="state_names">
-        <item>啟動中</item>
+        <item>開機中</item>
         <item>檢查中</item>
-        <item>導航啟動中</item>
+        <item>AIO NAV 啟動中</item>
         <item>保持靜止</item>
         <item>直線行駛</item>
         <item>精對準</item>
         <item>就緒</item>
         <item>降級</item>
         <item>故障</item>
-        <item>維護</item>
+        <item>已停止</item>
     </string-array>
     <string-array name="action_texts">
         <item>不需動作</item>
@@ -144,7 +144,7 @@
         <item>在有 GNSS 的環境下繼續正常行駛</item>
         <item>停止使用導航，並依車輛安全程序處理</item>
         <item>需要維護</item>
-        <item>已停止，按「恢復」後繼續</item>
+        <item>已停止，請在儀表板的總覽頁面按「恢復」或「啟動」</item>
     </string-array>
     <string-array name="gnss_quality_names">
         <item>未知</item>
@@ -159,18 +159,18 @@
         <item>IMU 資料正常</item>
         <item>GNSS 資料正常</item>
         <item>GNSS 品質足夠</item>
-        <item>導航程式執行中</item>
+        <item>AIO NAV 執行中</item>
         <item>導航輸出正常</item>
         <item>粗對準完成</item>
-        <item>航向有效</item>
+        <item>初始航向完成</item>
         <item>精對準完成</item>
         <item>DSO 正常</item>
-        <item>對外路由正常</item>
+        <item>到車端的路由正常</item>
         <item>RTK 修正資料正常</item>
         <item>儲存空間可寫入</item>
-        <item>車輛已確認</item>
+        <item>車端已確認接收</item>
         <item>時間同步正常</item>
-        <item>沒有重複的程式</item>
+        <item>AIO NAV 沒有重複執行</item>
         <item>Wi-Fi 正常</item>
     </string-array>
     <string-array name="inhibit_names">
@@ -179,18 +179,18 @@
         <item>IMU 資料缺少或延遲</item>
         <item>GNSS 資料缺少或延遲</item>
         <item>GNSS 品質不足</item>
-        <item>導航程式未執行</item>
+        <item>AIO NAV 未執行</item>
         <item>導航輸出延遲</item>
         <item>需要保持靜止</item>
         <item>需要直線行駛</item>
         <item>需要精對準</item>
         <item>DSO 尚未就緒</item>
-        <item>對外路由中斷</item>
+        <item>沒有到車端的路由</item>
         <item>RTK 修正資料中斷</item>
         <item>儲存空間無法寫入</item>
-        <item>維護暫停</item>
+        <item>操作人員已停止</item>
         <item>啟動逾時</item>
-        <item>擁有權衝突</item>
+        <item>管理權衝突</item>
         <item>內部錯誤</item>
     </string-array>
 </resources>
