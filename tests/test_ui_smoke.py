@@ -21,7 +21,8 @@ from aio_receiver.core.monitor import Monitor
 from aio_receiver.engine import Engine, ReplayInfo, Snapshot
 from aio_receiver.ui import theme
 from aio_receiver.ui.main_window import MainWindow
-from aio_receiver.ui.panels import elide
+from aio_receiver.ui.panels import elide, wrap
+from aio_receiver.ui.settings_dialog import SettingsDialog
 from helpers import nav, status
 
 
@@ -92,7 +93,9 @@ def window(root: tk.Tk, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iter
 
 
 def band(win: MainWindow) -> str:
-    return f"{win.band.word.cget('text')} {win.band.headline.cget('text')} {win.band.frame.cget('bg')}"
+    """The verdict as shown: word, headline, the word's colour and the colour of the lit lamp on the mast."""
+    b = win.band
+    return f"{b.word.cget('text')} {b.headline.cget('text')} {b.word.cget('fg')} {b.lit()}".rstrip()
 
 
 def test_every_state_renders(window: MainWindow) -> None:
@@ -103,7 +106,8 @@ def test_every_state_renders(window: MainWindow) -> None:
 
     mon.feed(nav(10.0), 0.1, "192.168.116.1")
     window.render(snap_from(mon, 0.1))
-    assert window.guidance.title.cget("text") == "等待狀態封包 0x05"
+    assert window.guidance.title.cget("text") == "開啟儀表板的 0x05"        # 0x05 never arrived: setup
+    assert window.status.link.text.cget("text") == "從未收到"
 
     aligning = ready_monitor(state=4, action=2)                      # MOVE_STRAIGHT, DRIVE_STRAIGHT
     window.render(snap_from(aligning, 2.99))
@@ -114,6 +118,7 @@ def test_every_state_renders(window: MainWindow) -> None:
     window.render(s)
     window.root.update_idletasks()
     assert band(window).startswith("可用") and theme.GO in band(window)
+    assert window.guidance.block_text.cget("text") == "無"
     assert window.guidance.title.cget("text") == "不需動作"
     assert "192.168.116.1" in window.footer.source.cget("text")
     assert window.root.title().startswith("可用")
@@ -122,6 +127,22 @@ def test_every_state_renders(window: MainWindow) -> None:
     assert window.footer.rec_time.cget("text") == "記錄中 0:01:05"
     window.render(replace(s, recording_error="記錄已停止：No space left on device"))
     assert "No space" in window.footer.error.cget("text")
+    window.root.update_idletasks()
+    assert window.footer.error_box.winfo_manager() == "pack"
+
+    window.render(snap_from(ready_monitor(), 8.0))                   # 0x05 worked, then stopped
+    assert window.guidance.title.cget("text") == "檢查儀表板與網路"
+    assert "已經收到 6 包" in window.guidance.sub.cget("text")
+    assert window.guidance.block_text.cget("text") == "沒有最新的 0x05，無法得知"
+
+
+def test_alignment_steps_are_amber_and_problems_red(window: MainWindow) -> None:
+    window.render(snap_from(ready_monitor(state=3, action=1), 2.99))      # KEEP_STILL asks to hold still
+    assert band(window).endswith(theme.WAIT)
+    assert window.guidance.title.cget("text") == "讓車輛完全靜止"
+    window.render(snap_from(ready_monitor(state=7, action=4), 2.99))      # DEGRADED asks for a safe stop
+    assert band(window).endswith(theme.STOP)
+    assert window.guidance.plate.cget("bg") == theme.STOP                   # the instruction turns red too
 
 
 def test_faults_force_red(window: MainWindow) -> None:
@@ -164,7 +185,7 @@ def test_replay_bar_only_in_replay(window: MainWindow) -> None:
 def test_stale_status_is_not_shown_green(window: MainWindow) -> None:
     window.render(snap_from(ready_monitor(), 10.0))                           # 0x05 timed out
     state = window.status.v["state"]
-    assert state.cget("text") == "就緒" and state.cget("fg") == theme.MUTED
+    assert state.cget("text") == "就緒" and state.cget("fg") == theme.FAINT
 
 
 def test_a_failing_frame_still_schedules_the_next(window: MainWindow) -> None:
@@ -179,6 +200,46 @@ def test_a_failing_frame_still_schedules_the_next(window: MainWindow) -> None:
         del window.root.after                                                 # back to the class method
     assert "畫面更新錯誤" in band(window) and theme.STOP in band(window)
     assert scheduled == [window._frame]
+
+
+def test_settings_same_port_saves_zero(root: tk.Tk, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """「與 0x04 相同」 saves 0 (follow the 0x04 port), never the 0x04 number the field shows."""
+    monkeypatch.setattr("aio_receiver.config.CONFIG_PATH", tmp_path / "settings.json")
+    saved: List[Settings] = []
+    d = SettingsDialog(root, Settings(), saved.append)
+    assert d.same.get() and d.vars["status_port"].get() == "9000"
+    d.vars["nav_port"].set("9100")
+    assert d.vars["status_port"].get() == "9100"                              # the field follows 0x04
+    d.save()
+    assert saved[-1].nav_port == 9100 and saved[-1].status_port == 0
+    d = SettingsDialog(root, saved[-1], saved.append)
+    d.same.set(False)
+    d._same_port()
+    d.vars["status_port"].set("9200")
+    d.save()
+    assert saved[-1].status_port == 9200
+
+
+def test_settings_error_opens_advanced(root: tk.Tk, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("aio_receiver.config.CONFIG_PATH", tmp_path / "settings.json")
+    saved: List[Settings] = []
+    d = SettingsDialog(root, Settings(), saved.append)
+    assert not d._advanced
+    d.vars["status_timeout"].set("0")
+    d.save()
+    assert saved == [] and d._advanced and "狀態逾時" in d.err.cget("text")
+    d.destroy()
+
+
+def test_wrap_breaks_chinese_between_characters(root: tk.Tk) -> None:
+    from tkinter import font as tkfont
+    f = tkfont.Font(family=theme.TXT, size=12)
+    text = "0x05 已中斷 5.6 秒。之前已經收到 90 包，所以設定沒有問題。"
+    lines = wrap(text, f, f.measure("0x05 已中斷 5.6 秒。之前"))
+    assert "".join(lines.splitlines()).replace(" ", "") == text.replace(" ", "")
+    assert all(f.measure(line) <= f.measure("0x05 已中斷 5.6 秒。之前") for line in lines.splitlines())
+    assert not any(line.startswith(("，", "。")) for line in lines.splitlines())
+    assert wrap("Check the dashboard", f, 10_000) == "Check the dashboard"
 
 
 def test_elide_keeps_both_ends() -> None:
