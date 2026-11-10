@@ -15,9 +15,15 @@ import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
 class StringsTest {
-    private class Table(val strings: Map<String, String>, val arrays: Map<String, List<String>>) {
+    private class Table(
+        val strings: Map<String, String>,
+        val arrays: Map<String, List<String>>,
+        /** name -> quantity -> text; the quantities differ by language (Chinese has only "other"). */
+        val plurals: Map<String, Map<String, String>>,
+    ) {
         val all: Map<String, String>
-            get() = strings + arrays.flatMap { (k, v) -> v.mapIndexed { i, s -> "$k[$i]" to s } }
+            get() = strings + arrays.flatMap { (k, v) -> v.mapIndexed { i, s -> "$k[$i]" to s } } +
+                plurals.flatMap { (k, v) -> v.map { (q, s) -> "$k[$q]" to s } }
     }
 
     /** The text as the app shows it: Android's resource escapes and surrounding quotes removed. */
@@ -32,6 +38,11 @@ class StringsTest {
             elements("string-array").associate { a ->
                 a.getAttribute("name") to a.getElementsByTagName("item").let { n -> (0 until n.length).map { shown(n.item(it).textContent) } }
             },
+            elements("plurals").associate { p ->
+                p.getAttribute("name") to p.getElementsByTagName("item").let { n ->
+                    (0 until n.length).map { n.item(it) as Element }.associate { it.getAttribute("quantity") to shown(it.textContent) }
+                }
+            },
         )
     }
 
@@ -45,6 +56,11 @@ class StringsTest {
         assertEquals(en.strings.keys, zh.strings.keys)
         assertEquals(en.arrays.mapValues { it.value.size }, zh.arrays.mapValues { it.value.size })
         for ((key, text) in en.strings) assertEquals(key, args(text), args(zh.strings.getValue(key)))
+        assertEquals(en.plurals.keys, zh.plurals.keys)
+        for ((key, forms) in en.plurals) {
+            assertTrue(key, "other" in forms && "other" in zh.plurals.getValue(key))
+            for (text in forms.values + zh.plurals.getValue(key).values) assertEquals(key, args(forms.getValue("other")), args(text))
+        }
     }
 
     /** The desktop's i18n.py, the authority for the wording. */
@@ -62,14 +78,50 @@ class StringsTest {
             return pair.findAll(source.substring(start, end)).map { it.groupValues[1] to it.groupValues[2] }.toList()
         }
 
-        /** One _T message, with its {name} arguments turned into Android's %1$s, %2$s in order. */
+        /**
+         * One _T message, its {name} arguments turned into Android's %1$s, %2$s in order, and Python format specs
+         * into Android's: {s:.1f} -> %1$.1f, {s:02d} -> %1$02d. {y:g} becomes %2$s: the app formats it first.
+         */
         fun message(key: String): Pair<String, String> {
-            val m = Regex("\"${Regex.escape(key)}\": " + pair.pattern).find(source) ?: error("$key not in i18n.py")
+            val at = source.indexOf("\"$key\": (")
+            check(at >= 0) { "$key not in i18n.py" }
+            val (zh, en) = tuple(source, source.indexOf('(', at))
             fun android(t: String): String {
                 var n = 0
-                return Regex("\\{\\w+\\}").replace(t) { "%${++n}\$s" }
+                return Regex("\\{\\w+(?::([^}]*))?\\}").replace(t) { m ->
+                    val spec = m.groupValues[1]
+                    "%${++n}\$" + if (spec.isEmpty() || spec == "g") "s" else spec
+                }
             }
-            return android(m.groupValues[1]) to android(m.groupValues[2])
+            return android(zh) to android(en)
+        }
+
+        /**
+         * The strings of the Python tuple that opens at `open`: adjacent literals are joined, as Python does
+         * ("a" "b" on two lines is "ab"), and \" \\ \n are unescaped.
+         */
+        private fun tuple(src: String, open: Int): List<String> {
+            val items = ArrayList<String>()
+            val cur = StringBuilder()
+            var i = open + 1
+            while (true) {
+                when (val c = src[i]) {
+                    '"' -> {
+                        i++
+                        while (src[i] != '"') {
+                            if (src[i] == '\\') {
+                                i++
+                                cur.append(if (src[i] == 'n') '\n' else src[i])
+                            } else cur.append(src[i])
+                            i++
+                        }
+                    }
+                    ',' -> { items += cur.toString(); cur.clear() }
+                    ')' -> { if (cur.isNotEmpty()) items += cur.toString(); return items }
+                    else -> check(c.isWhitespace()) { "unexpected '$c' in i18n.py at $i" }
+                }
+                i++
+            }
         }
     }
 
@@ -100,7 +152,19 @@ class StringsTest {
             "reason_not_finite" to "reason.nav_not_finite", "none" to "none", "legend_no_status" to "band.no_status",
             "fail_bind" to "fail.bind", "os_in_use" to "os.in_use", "os_denied" to "os.denied",
             "os_no_address" to "os.no_address", "os_other" to "os.other",
-        )
+        ) + listOf(
+            // Layout C (docs/UI-PHONE-C.zh-TW.md 5.2): the Android key is the desktop key with "_" for ".".
+            "band.usable", "band.nothing", "band.no_status", "band.status_lost", "band.startup", "band.stage1",
+            "band.stage2", "band.stage3", "band.ready_inhibit", "band.degraded", "band.fault", "band.maintenance",
+            "band.state", "band.settling", "band.no_nav", "band.nav_lost", "band.nav_backwards", "band.not_aligned",
+            "band.not_finite", "band.since", "band.total", "mast.stop", "mast.wait", "mast.go", "guide.no_status",
+            "guide.no_status_sub", "guide.status_lost", "guide.status_lost_sub", "station.start", "station.still",
+            "station.straight", "station.fine", "station.usable", "station.confirming", "rail.no_status",
+            "rail.ready_inhibit", "rail.degraded", "rail.fault", "rail.stopped", "rail.unknown", "block.title",
+            "block.unknown", "block.expected", "link.none", "link.never", "link.lost", "link.nav", "link.status",
+            "age.s", "age.ms", "age.hm", "status.health", "status.met", "status.out_of_date", "track.usable",
+            "track.blocked", "set.sec_everyday", "set.sec_advanced", "set.advanced_sub",
+        ).associateBy { it.replace('.', '_') }
         for ((key, desktop) in messages) {
             val (wantZh, wantEn) = Desktop.message(desktop)
             assertEquals(key, wantZh, zh.strings[key])
@@ -133,7 +197,7 @@ class StringsTest {
     fun chineseHasNoEnglishSentences() {
         // Acronyms, product names, units and config keys stay; English words of three or more lower-case letters
         // in a row (outside config keys like status_udp.enabled) mean an untranslated phrase.
-        val keep = setOf("dashboard", "relay")
+        val keep = setOf("dashboard", "relay", "destination", "true")      // config keys and values: status_udp.destination
         val words = Regex("(?<![\\w.])[a-z]{3,}(?![\\w.])")
         val bad = zh.all.filter { (k, v) -> k != "language_en" && words.findAll(v).any { it.value !in keep } }
             .filterValues { !it.contains("web_monitor") }

@@ -7,6 +7,8 @@ import com.lemongrass.aionav.core.Monitor
 import com.lemongrass.aionav.core.NavPacket
 import com.lemongrass.aionav.core.StatusPacket
 import com.lemongrass.aionav.core.Verdict
+import com.lemongrass.aionav.ui.Kind
+import com.lemongrass.aionav.ui.Presentation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +18,8 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 data class MonitorSnapshot(
+    /** The rules in force (thresholds), for what the screen says about them. */
+    val cfg: GateConfig = GateConfig(),
     val verdict: Verdict = Verdict.NO_STATUS,
     val nav: NavPacket? = null,
     val navAge: Double? = null,
@@ -28,13 +32,20 @@ data class MonitorSnapshot(
     val statusRateHz: Double = 0.0,
     /** Exact: the Monitor sums it between verdict changes. */
     val usableSeconds: Double = 0.0,
+    /** How long the verdict has been what it is; null before the first evaluation. */
+    val verdictFor: Double? = null,
+    /** How long READY (with no blocking condition) has held, the stability count; null when it has not. */
+    val readyFor: Double? = null,
 )
 
 /** A port that could not be bound; the screen words it in the current language (ui/Words.bindError). */
 data class ListenFailure(val port: Int, val errno: Int?, val text: String)
 
-/** `start`/`end` in wall-clock milliseconds. `state` is the dashboard state, or NO_STATUS. */
-data class TimelineSegment(val start: Long, val end: Long, val usable: Boolean, val state: String)
+/**
+ * `start`/`end` in wall-clock milliseconds. `state` is the dashboard state, or NO_STATUS. `kind` is the signal
+ * the screen showed (Presentation.band), for the charts' signal history.
+ */
+data class TimelineSegment(val start: Long, val end: Long, val usable: Boolean, val state: String, val kind: Kind)
 
 /** Navigation values sampled at 2 Hz while 0x04 is arriving. */
 data class NavSample(
@@ -74,12 +85,15 @@ class MonitorEngine(cfg: GateConfig) {
         monitor.advance(now)
         val g = monitor.gate
         MonitorSnapshot(
+            cfg = g.cfg,
             verdict = monitor.verdict ?: Verdict.NO_STATUS,
             nav = g.nav, navAge = g.nav?.let { now - g.navAt },
             status = g.status, statusAge = g.status?.let { now - g.statusAt },
             counts = g.count.copy(), navSender = monitor.navSender, statusSender = monitor.statusSender,
             navRateHz = monitor.navRate(now), statusRateHz = monitor.statusRate(now),
             usableSeconds = monitor.usableTotal,
+            verdictFor = (now - monitor.changedAt).takeIf { it.isFinite() },
+            readyFor = g.readySince?.let { now - it },
         )
     }
 }
@@ -124,6 +138,7 @@ object MonitorStore {
         appContext = context.applicationContext
         _settings.value = MonitorSettings.load(appContext)
         engine = MonitorEngine(_settings.value.gateConfig())
+        _snapshot.value = MonitorSnapshot(cfg = _settings.value.gateConfig())
     }
 
     @Synchronized
@@ -175,7 +190,7 @@ object MonitorStore {
         linkSamples.clear()
         run += 1
         _history.value = History()
-        _snapshot.value = MonitorSnapshot()
+        _snapshot.value = MonitorSnapshot(cfg = _settings.value.gateConfig())
         if (wasRunning) start()
     }
 
@@ -199,11 +214,12 @@ object MonitorStore {
     private fun recordTimeline(snap: MonitorSnapshot, wall: Long) {
         val usable = snap.verdict.usable
         val state = if (snap.verdict == Verdict.NO_STATUS) "NO_STATUS" else snap.status?.stateName ?: "NO_STATUS"
+        val kind = Presentation.band(snap).kind
         val last = timeline.lastOrNull()
-        if (last != null && last.usable == usable && last.state == state) {
+        if (last != null && last.usable == usable && last.state == state && last.kind == kind) {
             timeline[timeline.size - 1] = last.copy(end = wall)
         } else {
-            timeline += TimelineSegment(last?.end ?: wall, wall, usable, state)
+            timeline += TimelineSegment(last?.end ?: wall, wall, usable, state, kind)
         }
     }
 
