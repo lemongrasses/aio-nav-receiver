@@ -1,5 +1,8 @@
 """Main window: composes the parts and renders the engine's latest snapshot every 100 ms.
 
+Layout C: the signal mast, the glance zone (verdict, what to do, the alignment route, what blocks)
+and the engineering zone (actions, navigation 0x04, status 0x05 and track, source and counts).
+
 Fail safe: an engine error, a bind error, a snapshot older than STALE_AFTER or an exception while
 rendering all show 不可用. The next frame is always scheduled, whatever happened in this one.
 
@@ -12,16 +15,17 @@ import logging
 import time
 import tkinter as tk
 from pathlib import Path
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
 from typing import List, Optional
 
 from .. import APP_NAME, __version__, config, i18n, osutil
 from ..config import Settings
 from ..engine import Engine, Snapshot
-from ..i18n import t
+from ..i18n import os_error, t
 from . import presentation as V
 from . import theme as T
-from .panels import GAP, Footer, GuidanceStrip, NavPanel, ReplayBar, StatusPanel, TrackPanel, VerdictBand
+from .dialogs import Notice
+from .panels import GAP, Footer, GuidanceStrip, NavPanel, ReplayBar, ScrollZone, StatusPanel, TrackPanel, VerdictBand
 from .settings_dialog import SettingsDialog
 
 log = logging.getLogger(__name__)
@@ -55,21 +59,30 @@ class MainWindow:
     def _build(self) -> None:
         r = self.root
         r.configure(bg=T.KERB)
+        r.geometry(T.fit_to_screen(r))     # first: it sets the zoom the drawn parts use
         T.init_styles(r)
-        r.geometry(T.fit_to_screen(r))
-        r.minsize(1100, 720)
+        r.minsize(T.px(1100), T.px(720))
         self.replay_bar = ReplayBar(r, self.change_speed, self.start_live)
-        self.band = VerdictBand(r)
-        self.guidance = GuidanceStrip(r, self.copy_firewall)
-        self.footer = Footer(r, {"record": self.toggle_record, "replay": self.open_replay,
-                                 "settings": self.open_settings, "track": self.toggle_track,
-                                 "alert": self.toggle_alert}, self.show_track, self.alert)
-        self.body = body = tk.Frame(r, bg=T.KERB, padx=16, pady=GAP)
-        body.pack(fill="both", expand=True)
-        for col, weight in enumerate((8, 6, 5)):
-            body.columnconfigure(col, weight=weight, uniform="c")
+        self.main = main = tk.Frame(r, bg=T.KERB)
+        main.pack(fill="both", expand=True)
+        main.rowconfigure(0, weight=1)
+        main.columnconfigure(1, weight=5, uniform="z")      # glance zone
+        main.columnconfigure(2, weight=7, uniform="z")      # engineering zone
+        glance = tk.Frame(main, bg=T.PANEL, padx=32, pady=24)
+        glance.grid(row=0, column=1, sticky="nsew")
+        zone = ScrollZone(main)
+        zone.outer.grid(row=0, column=2, sticky="nsew")
+        eng = zone.inner
+        self.band = VerdictBand(main, glance)
+        self.guidance = GuidanceStrip(glance, self.copy_firewall)
+        self.footer = Footer(eng, {"record": self.toggle_record, "replay": self.open_replay,
+                                   "settings": self.open_settings, "track": self.toggle_track,
+                                   "alert": self.toggle_alert}, self.show_track, self.alert)
+        self.nav = NavPanel(eng)
+        self.body = body = tk.Frame(eng, bg=T.KERB)
+        body.pack(fill="both", expand=True, pady=(GAP, 0))
         body.rowconfigure(0, weight=1)
-        self.nav = NavPanel(body)
+        body.columnconfigure(0, weight=7, uniform="b")
         self.status = StatusPanel(body)
         self.track = TrackPanel(body, self.engine.clear_track)
 
@@ -109,7 +122,7 @@ class MainWindow:
         replay = snap.source_kind == "replay"
         if replay != bool(self.replay_bar.frame.winfo_ismapped()):
             if replay:
-                self.replay_bar.frame.pack(fill="x", before=self.band.frame)
+                self.replay_bar.frame.pack(fill="x", before=self.main)
             else:
                 self.replay_bar.frame.pack_forget()
         self.replay_bar.update(snap)
@@ -144,7 +157,11 @@ class MainWindow:
         try:
             self.engine.start_replay(path, self.settings, self.replay_bar.speed_value)
         except (OSError, ValueError) as e:
-            messagebox.showerror(t("dlg.cannot_replay"), f"{path}\n\n{e}", parent=self.root)
+            # The .bin explanation fits a file that is not a recording, not an empty or newer one.
+            only_bin = path.suffix.lower() != ".bin" or (isinstance(e, i18n.UserError) and e.msg.key == "rec.not_aio")
+            text = os_error(e) if isinstance(e, OSError) else e
+            foot = " ".join(([t("dlg.only_bin")] if only_bin else []) + [t("dlg.monitor_continues")])
+            Notice(self.root, "error", t("dlg.cannot_replay"), str(text), [str(path)], foot, bold_lead=True)
 
     def copy_firewall(self) -> None:
         hint = osutil.firewall_hint(self.settings.ports)
@@ -176,11 +193,11 @@ class MainWindow:
 
     def toggle_track(self) -> None:
         if self.show_track.get():
-            self.body.columnconfigure(2, weight=5, uniform="c")
+            self.body.columnconfigure(1, weight=5, uniform="b")
             self.track.frame.grid()
         else:
             self.track.frame.grid_remove()
-            self.body.columnconfigure(2, weight=0, uniform="")
+            self.body.columnconfigure(1, weight=0, uniform="")
         self._remember(show_track=self.show_track.get())
 
     def toggle_alert(self) -> None:
@@ -219,8 +236,11 @@ class MainWindow:
         if snap is not None and snap.replay is not None:
             self.replay_bar.speed.set(f"{snap.replay.speed:g}×")
 
-    def warn(self, title: str, lines: List[str]) -> None:
-        self.root.after(300, lambda: messagebox.showwarning(title, "\n".join(lines), parent=self.root))
+    def warn_settings(self, problems: List[str]) -> None:
+        """Settings that could not be used: shown once the window is up, with where the file is."""
+        foot = t("dlg.settings_foot", path=config.CONFIG_PATH)
+        self.root.after(300, lambda: Notice(self.root, "warn", t("dlg.settings_problem"), t("dlg.settings_ignored"),
+                                            problems, foot))
 
     def close(self) -> None:
         self._closing = True
@@ -235,7 +255,7 @@ def run(settings: Settings, problems: List[str], replay: Optional[Path] = None, 
     engine = Engine()
     win = MainWindow(root, engine, settings)
     if problems:
-        win.warn(t("dlg.settings_problem"), [t("dlg.settings_ignored"), *problems])
+        win.warn_settings(problems)
     if replay is not None:
         win.start_replay(replay, speed)
     if engine.snapshot is None:

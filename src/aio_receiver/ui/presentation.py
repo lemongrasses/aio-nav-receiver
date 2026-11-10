@@ -10,14 +10,20 @@ Colour carries meaning only:
 
 from __future__ import annotations
 
-from typing import NamedTuple, Optional
+from typing import List, NamedTuple, Optional, Tuple
 
+from .. import i18n
 from ..core import protocol as P
 from ..core.gate import Reason
 from ..engine import Snapshot
 from ..i18n import t
 
 STARTUP = frozenset({"BOOTING", "CHECKING", "NAV_STARTING"})
+ALIGNING = frozenset({"KEEP_STILL", "MOVE_STRAIGHT", "REFINING"})
+# Blocking conditions that are simply the next alignment steps while AIO NAV starts or aligns.
+STEP_BITS = frozenset({"BOOT_IN_PROGRESS", "KEEP_STILL_REQUIRED", "MOVE_STRAIGHT_REQUIRED",
+                       "FINE_ALIGNMENT_REQUIRED"})
+DANGER_ACTIONS = frozenset({"SAFE_STOP", "SERVICE_REQUIRED"})
 
 # The alignment as a route: (label key, states at that station). The last station is READY.
 STATIONS = (("station.start", STARTUP), ("station.still", {"KEEP_STILL"}),
@@ -63,7 +69,7 @@ def band(snap: Snapshot, failure: Optional[str]) -> Band:
         headline = t(key) if key else t("band.state", state=name)
         if name == "MAINTENANCE":
             return Band("idle", blocked, headline)
-        if name in STARTUP or name in ("KEEP_STILL", "MOVE_STRAIGHT", "REFINING"):
+        if name in STARTUP or name in ALIGNING:
             return Band("wait", blocked, headline)
         return Band("stop", blocked, headline)
     if r is Reason.READY_NOT_STABLE:
@@ -110,6 +116,58 @@ def rail(snap: Snapshot) -> Rail:
     return Rail(-1, "none", 0.0, t("rail.unknown", state=name))
 
 
+class Guide(NamedTuple):
+    """The one thing the operator does now, under the verdict."""
+
+    kind: str           # setup | plate | danger | quiet (nothing to do: no plate)
+    title: str
+    sub: str
+
+
+def guide(snap: Snapshot) -> Guide:
+    if snap.nothing_received:
+        if snap.source_kind == "replay":
+            return Guide("plate", t("guide.replay_empty"), "")
+        return Guide("setup", t("setup.title"), "")
+    if not snap.status_fresh:
+        if snap.source_kind == "replay":
+            return Guide("plate", t("guide.wait_status"), t("guide.wait_status_replay"))
+        if snap.count.status == 0 or snap.status is None:      # 0x04 arrives, 0x05 never has: setup
+            return Guide("plate", t("guide.no_status"), t("guide.no_status_sub"))
+        return Guide("plate", t("guide.status_lost"),            # it worked before: dashboard or network
+                     t("guide.status_lost_sub", age=fmt_age(snap.now - snap.status_at), n=snap.count.status))
+    assert snap.status is not None
+    action = P.name_of(snap.status.action, P.ACTIONS)
+    if action == "NONE":
+        return Guide("quiet", i18n.action_text(action), "")
+    return Guide("danger" if action in DANGER_ACTIONS else "plate", i18n.action_text(action), "")
+
+
+class Chip(NamedTuple):
+    text: str
+    expected: bool      # a normal alignment step (amber), not a problem (red)
+
+
+def blocking(snap: Snapshot) -> Optional[List[Chip]]:
+    """The 0x05 blocking conditions, or None when there is no current 0x05 to say."""
+    if not snap.status_fresh:
+        return None
+    s = snap.status
+    assert s is not None
+    aligning = P.name_of(s.state, P.STATES) in STARTUP | ALIGNING
+    return [Chip(i18n.inhibit_name(b), aligning and P.INHIBIT_BITS[b] in STEP_BITS)
+            for b in range(len(P.INHIBIT_BITS)) if s.inhibit >> b & 1]
+
+
+def conditions(snap: Snapshot) -> List[Tuple[str, bool]]:
+    """(condition, met) for every 0x05 health flag, the unmet first; empty before any 0x05."""
+    s = snap.status
+    if s is None:
+        return []
+    rows = [(i18n.health_name(i), bool(s.health >> i & 1)) for i in range(len(P.HEALTH_BITS))]
+    return sorted(rows, key=lambda r: r[1])     # stable: bit order within each group
+
+
 class Link(NamedTuple):
     kind: str           # go | stop | idle
     text: str
@@ -126,6 +184,8 @@ def nav_link(snap: Snapshot) -> Link:
 
 def status_link(snap: Snapshot) -> Link:
     if snap.status is None:
+        if snap.nav is not None and snap.count.status == 0:     # 0x04 arrives, 0x05 never has
+            return Link("stop", t("link.never"))
         return Link("idle", t("link.none"))
     age = snap.now - snap.status_at
     if age > snap.cfg.status_timeout:

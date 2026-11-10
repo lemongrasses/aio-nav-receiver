@@ -55,3 +55,38 @@ def test_links_and_ages() -> None:
     mon.feed(status(1), 0.0, "a")
     assert V.nav_link(snap_from(mon, 0.1)) == ("idle", "沒有資料")
     assert V.fmt_age(4000) == "1 小時 6 分" and V.fmt_dur(3725) == "1:02:05"
+
+
+def test_guide_tells_never_from_lost() -> None:
+    assert V.guide(snap_from(Monitor(Settings().gate_config()), 0.0)).kind == "setup"
+    mon = Monitor(Settings().gate_config())
+    mon.feed(nav(1.0), 0.0, "a")
+    never = snap_from(mon, 0.1)
+    assert V.guide(never) == ("plate", "開啟儀表板的 0x05", V.guide(never).sub)
+    assert V.status_link(never) == ("stop", "從未收到")
+    lost = V.guide(snap_from(ready_monitor(), 8.0))
+    assert lost.title == "檢查儀表板與網路" and "已中斷 5.5 秒" in lost.sub and "收到 6 包" in lost.sub
+    replay = replace(snap_from(ready_monitor(), 8.0), source_kind="replay")
+    assert V.guide(replay).title == "等待狀態封包 0x05"
+    assert V.guide(snap_from(ready_monitor(), 2.99)) == ("quiet", "不需動作", "")
+    assert V.guide(snap_from(ready_monitor(state=P.STATES.index("FAULT"), action=4), 2.99)).kind == "danger"
+
+
+def test_blocking_conditions() -> None:
+    assert V.blocking(snap_from(ready_monitor(), 8.0)) is None             # no current 0x05: unknown
+    assert V.blocking(snap_from(ready_monitor(), 2.99)) == []
+    still = 1 << P.INHIBIT_BITS.index("KEEP_STILL_REQUIRED") | 1 << P.INHIBIT_BITS.index("FINE_ALIGNMENT_REQUIRED")
+    mon = Monitor(Settings().gate_config())
+    mon.feed(status(1, state=P.STATES.index("KEEP_STILL"), inhibit=still), 0.0, "a")
+    assert V.blocking(snap_from(mon, 0.1)) == [V.Chip("需要保持靜止", True), V.Chip("需要精對準", True)]
+    rtk = still | 1 << P.INHIBIT_BITS.index("RTK_CORRECTION_LOST")
+    mon.feed(status(2, state=P.STATES.index("DEGRADED"), inhibit=rtk), 0.2, "a")
+    assert [c.expected for c in V.blocking(snap_from(mon, 0.3)) or []] == [False, False, False]
+
+
+def test_conditions_unmet_first() -> None:
+    assert V.conditions(snap_from(Monitor(Settings().gate_config()), 0.0)) == []
+    rows = V.conditions(snap_from(ready_monitor(), 2.99))
+    assert len(rows) == len(P.HEALTH_BITS)
+    met = [ok for _, ok in rows]
+    assert met == sorted(met)                                               # every unmet before every met

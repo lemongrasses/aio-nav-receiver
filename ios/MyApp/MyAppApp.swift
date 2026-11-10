@@ -16,6 +16,7 @@ struct MyAppApp: App {
                 .environment(store)
                 .environment(\.uiLanguage, store.language)
                 .environment(\.locale, store.language.locale)
+                .preferredColorScheme(.light)       // the signal colours are tuned for a white page (D2)
         }
         .onChange(of: scenePhase, initial: true) {
             // iOS suspends apps in the background; release the port and pick up again on return.

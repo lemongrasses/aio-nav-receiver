@@ -2,6 +2,9 @@
 
 Bahnschrift is Microsoft's DIN 1451, the German road-sign face; macOS has DIN Alternate / DIN
 Condensed. Light theme: the laptop is read beside a vehicle, often in daylight.
+
+Layout C: a signal mast on the left (position says the meaning, so it reads without colour), a
+glance zone with the verdict and the one instruction, and an engineering zone with the detail.
 """
 
 from __future__ import annotations
@@ -11,26 +14,38 @@ from tkinter import font as tkfont
 from tkinter import ttk
 
 # Surfaces and ink
-ASPHALT = "#1D252C"         # text; the replay bar
-KERB = "#E4E7EA"            # background and gutters
+ASPHALT = "#1D252C"         # text; the signal mast
+KERB = "#E9ECEE"            # background and gutters
 PANEL = "#FFFFFF"
-MUTED = "#5B6670"
-LINE = "#CBD1D6"
+SHADE = "#F6F7F8"           # dialog footers, quiet boxes
+TEXT2 = "#3B454E"           # secondary text
+MUTED = "#56616B"           # labels and hints
+FAINT = "#6B757E"           # not received yet, future stations (4.5:1 on white)
+LINE = "#D5DADF"            # rules and outlines, never text
 GRID = "#EEF1F3"            # map graph paper
+FOCUS = "#1B5FD9"
 
 # Signal colours (RAL traffic green / yellow / red / grey). Meaning only.
 GO = "#1E7B45"
 WAIT = "#F2B705"            # dark text on it
 STOP = "#B3261E"
-IDLE = "#69747E"
+IDLE = "#5F6A73"
 GO_TINT = "#DDEFE3"         # recent aiding flag
-WAIT_INK = ASPHALT
+GO_INK = "#145A32"
+AMBER = "#8A5A00"           # counters worth a look (lost, out of order)
+INFO = "#1B4F9C"            # mandatory-instruction blue: what to do now; the replay bar
+INFO_INK = "#E3ECF9"        # secondary text on INFO
 
-BAND = {"go": (GO, "white"), "wait": (WAIT, WAIT_INK), "stop": (STOP, "white"), "idle": (IDLE, "white")}
-DOT = {"go": GO, "stop": STOP, "idle": LINE}
+SIGNAL = {"go": GO, "wait": WAIT, "stop": STOP, "idle": IDLE}
+WORD = {"go": GO, "wait": ASPHALT, "stop": STOP, "idle": IDLE}   # the big word: yellow text would not read
 
-# Kept for code that predates the signage names.
-BASE, INK, CAUTION = KERB, ASPHALT, "#9A6700"
+# The mast's unlit lamps
+LAMP_OFF, LAMP_RING_OFF, LAMP_TEXT_OFF = "#2B353D", "#46525C", "#9AA4AC"
+
+# Blocking-condition chips: (background, text, outline)
+CHIP_EXPECTED = ("#FFF1BF", "#6B4600", "#E5C44D")    # a normal alignment step
+CHIP_PROBLEM = ("#FBE4E2", STOP, "#E6A39E")
+ALERT = ("#FBE4E2", "#8C1D17", STOP)                  # the recording-error box
 
 _TXT = ("Microsoft JhengHei UI", "Microsoft JhengHei", "PingFang TC", "Noto Sans CJK TC", "Noto Sans TC",
         "Source Han Sans TC", "Noto Sans CJK SC", "WenQuanYi Micro Hei", "Droid Sans Fallback")
@@ -46,6 +61,12 @@ NAME = "TkDefaultFont"      # translated names in tight spaces (states, conditio
 
 DESIGN_SIZE = (1440, 900)   # pixels at 96 dpi
 DESIGN_SCALING = 96 / 72    # Tk pixels per point at 96 dpi
+ZOOM = 1.0                  # drawn geometry follows the text size (see fit_to_screen)
+
+
+def px(n: float) -> int:
+    """Canvas geometry in design pixels, scaled like the text so shapes and labels stay in proportion."""
+    return round(n * ZOOM)
 
 
 def init_fonts(root: tk.Misc, language: str = "zh-TW") -> None:
@@ -64,10 +85,10 @@ def init_fonts(root: tk.Misc, language: str = "zh-TW") -> None:
 
 
 def init_styles(root: tk.Misc) -> None:
-    """ttk check buttons take the colour of the surface they sit on (native themes paint grey)."""
+    """ttk widgets take the colour of the surface they sit on (native themes paint grey)."""
     style = ttk.Style(root)
-    style.configure("Kerb.TCheckbutton", background=KERB)
-    style.configure("Panel.TCheckbutton", background=PANEL)
+    for name, bg in (("Kerb", KERB), ("Panel", PANEL), ("Shade", SHADE)):
+        style.configure(f"{name}.TCheckbutton", background=bg, foreground=ASPHALT, font=(TXT, 10))
 
 
 def fit_to_screen(root: tk.Tk) -> str:
@@ -76,6 +97,7 @@ def fit_to_screen(root: tk.Tk) -> str:
     Tk already enlarges fonts on high-DPI screens; on a small or highly scaled laptop screen that
     would push panels off the bottom, so the scaling is lowered just enough to fit.
     """
+    global ZOOM
     scaling = float(root.tk.call("tk", "scaling"))
     zoom = scaling / DESIGN_SCALING
     w, h = DESIGN_SIZE[0] * zoom, DESIGN_SIZE[1] * zoom
@@ -83,5 +105,6 @@ def fit_to_screen(root: tk.Tk) -> str:
     fit = min(1.0, avail_w / w, avail_h / h)
     if fit < 1.0:
         root.tk.call("tk", "scaling", scaling * fit)
-        w, h = w * fit, h * fit
+        w, h, zoom = w * fit, h * fit, zoom * fit
+    ZOOM = zoom
     return f"{int(w)}x{int(h)}"
