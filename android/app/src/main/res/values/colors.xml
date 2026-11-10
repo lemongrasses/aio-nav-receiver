@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="usable">#FF2E7D32</color>
-    <color name="blocked">#FFC62828</color>
+    <!-- The notification in the four signal classes (docs/UI-PHONE-C.zh-TW.md 4.5). Wait is the dark amber, not
+         the yellow: the system draws white text on a colourised notification. -->
+    <color name="signal_go">#FF1E7B45</color>
+    <color name="signal_wait">#FF8A5A00</color>
+    <color name="signal_stop">#FFB3261E</color>
+    <color name="signal_idle">#FF5F6A73</color>
     <color name="launcher_background">#FF1B5E20</color>
 </resources>

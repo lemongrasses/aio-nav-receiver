@@ -22,6 +22,9 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.lemongrass.aionav.MainActivity
 import com.lemongrass.aionav.R
+import com.lemongrass.aionav.core.Verdict
+import com.lemongrass.aionav.ui.Kind
+import com.lemongrass.aionav.ui.Presentation
 import com.lemongrass.aionav.ui.Words
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +40,9 @@ import kotlinx.coroutines.launch
  * notification that shows 可用 / 不可用. A partial wake lock and a Wi-Fi lock keep 100 Hz arriving with the
  * screen off.
  */
+/** What the notification says: it is re-posted only when this changes. */
+private data class NotificationKey(val verdict: Verdict, val state: Int?, val action: Int?, val kind: Kind)
+
 class MonitorService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var wakeLock: PowerManager.WakeLock? = null
@@ -67,10 +73,10 @@ class MonitorService : Service() {
             scope.launch {
                 // Re-post only when what the notification says changes.
                 MonitorStore.snapshot
-                    .map { Triple(it.verdict, it.status?.state, it.status?.action) }
+                    .map { NotificationKey(it.verdict, it.status?.state, it.status?.action, Presentation.band(it).kind) }
                     .distinctUntilChanged()
-                    .collect { (verdict, state, _) ->
-                        Log.i(TAG, "verdict ${verdict.reason} ${verdict.legacyText} (state ${state ?: "-"})")
+                    .collect { key ->
+                        Log.i(TAG, "verdict ${key.verdict.reason} ${key.verdict.legacyText} (state ${key.state ?: "-"}, ${key.kind})")
                         nm.notify(NOTIFICATION_ID, notification(MonitorStore.snapshot.value))
                     }
             }
@@ -125,7 +131,13 @@ class MonitorService : Service() {
             .setContentTitle(title)
             .setContentText(lines.joinToString(" — "))
             .setStyle(NotificationCompat.BigTextStyle().bigText(lines.joinToString("\n")))
-            .setColor(ContextCompat.getColor(this, if (usable) R.color.usable else R.color.blocked))
+            // The four signal classes, as on the screen (layout C, decision D4: only the colour changes).
+            .setColor(ContextCompat.getColor(this, when (Presentation.band(snap).kind) {
+                Kind.GO -> R.color.signal_go
+                Kind.WAIT -> R.color.signal_wait
+                Kind.STOP -> R.color.signal_stop
+                Kind.IDLE -> R.color.signal_idle
+            }))
             .setColorized(true)
             .setOngoing(true)
             .setOnlyAlertOnce(true)

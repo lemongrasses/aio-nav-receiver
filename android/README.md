@@ -5,17 +5,28 @@ navigation output may be used. Same rules as the desktop app (`src/aio_receiver/
 iPhone app; monitoring only, the app never sends anything back. Native Kotlin + Jetpack Compose,
 Android 8.0 (API 26) or newer.
 
-- **Status**: green 可用 / red 不可用 with the reason, dashboard state, operator instruction, navigation
-  values (position, heading, speed, σ, flags, data age, receive rate), the 0x05 inhibit/health bits and
-  packet statistics.
-- **Charts**: last 1 / 5 / 10 minutes: status timeline (verdict + dashboard state), position σ, heading σ,
-  0x04 data age against the limit, receive rate, speed, heading, height.
-- **Track**: the last 10 minutes drawn in local metres (no map tiles, no API key), green where usable and
-  red where blocked, heading arrow, grid, scale bar; drag and pinch, "Follow vehicle" to fit again.
-- **Settings**: this phone's IP addresses and Wi-Fi state, ports, 0x05 message id, "accept only source
-  IP", rule thresholds, keep screen on, background receiving, apply / restore defaults / clear.
+The screens follow layout C ([docs/UI-PHONE-C.zh-TW.md](../docs/UI-PHONE-C.zh-TW.md), the same design as the
+desktop's): colour only carries meaning, a signal mast reads by position (red on top: a problem; yellow: wait, as
+expected; green at the bottom: usable; all dark: nothing to judge), light theme only.
+
+- **Status**, without scrolling on a normal phone: the verdict band with the mast and how long it has held
+  (the lamp blinks three times when usable ends, unless the system reduces motion), the one instruction as a
+  road-sign plate (blue; red for SAFE_STOP / SERVICE_REQUIRED), the alignment route 啟動 → 靜止 → 直行 → 精對準 →
+  可用 with what still blocks, the 0x04 / 0x05 streams, and three rows that open one at a time with every value
+  (navigation, 0x05 with all blocking and met conditions, statistics with the last sender). A port that cannot
+  be bound shows 無法接收 and a plate pointing to Settings.
+- **Charts**: last 1 / 5 / 10 minutes: the signal history (one row per lamp, so it reads without colour, plus
+  the dashboard state), position σ, heading σ, 0x04 data age against the limit, receive rate, speed, heading,
+  height, each with its current value.
+- **Track**: the last 10 minutes drawn in local metres (no map tiles, no API key): a wide green line where
+  usable, a thin dashed grey one where blocked, the vehicle in the signal colour, graph paper, scale bar and
+  north; drag and pinch, "Follow vehicle" to fit again.
+- **Settings**: "Everyday" (this phone's addresses and Wi-Fi, receiving, version, language, keep screen on,
+  background receiving) and "Advanced: receiving and rules" (ports, 0x05 message id, "accept only source IP",
+  the rule thresholds in a red box). Changes wait in a blue bar above the tabs until **Apply**; the language
+  applies at once; "Clear charts and statistics" clears at once.
 - **Background**: unlike iOS, Android keeps receiving when the app is not on screen. A foreground
-  service (type `connectedDevice`) shows 可用 / 不可用 in an ongoing green / red notification; its **Stop**
+  service (type `connectedDevice`) shows 可用 / 不可用 in an ongoing notification in the signal colour; its **Stop**
   button ends it. Turn off "Keep receiving in the background" to receive only while the app is on screen.
 
 **Language:** one language at a time, 繁體中文 (`res/values-zh-rTW`) or English (`res/values`), like the
@@ -67,6 +78,8 @@ The unit tests run on the JVM, no device needed. They hold this port to the desk
   counters must match the `.expected.json`;
 - the decoders against the golden 0x05 and a 0x04 from the desktop encoder (and the encoders back);
 - `core/` stays free of Android imports;
+- `ui/Presentation.kt` (what the screen says: the band, the instruction, the route, the streams) on the desktop's
+  `tests/test_presentation.py` cases (`PresentationTest`);
 - both languages hold the same texts with the same arguments and a word for every protocol code; English
   has no Chinese; no raw protocol code (KEEP_STILL_REQUIRED) is shown on screen. The recordings' reason text
   is compared as the pre-1.0 sentence rebuilt from the codes (`Verdict.legacyText`, the desktop's
