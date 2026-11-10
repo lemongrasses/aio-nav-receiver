@@ -109,14 +109,92 @@ nonisolated enum Vocabulary {
         "os.denied": ("沒有權限", "permission denied"),
         "os.no_address": ("這台電腦沒有這個位址", "this computer has no such address"),
         "os.other": ("系統錯誤 {code}：{text}", "system error {code}: {text}"),
+
+        // Layout C (desktop branch feature/desktop-ui-c): the signal band, guidance, route and streams.
+        "band.usable": ("導航輸出可以使用", "The navigation output may be used"),
+        "band.nothing": ("還沒收到任何封包", "No packets received yet"),
+        "band.status_lost": ("狀態封包 0x05 中斷超過 {s} 秒", "Status packets (0x05) stopped for over {s} s"),
+        "band.startup": ("系統啟動中", "Starting up"),
+        "band.stage1": ("對準第 1 階段：保持靜止", "Alignment stage 1: keep still"),
+        "band.stage2": ("對準第 2 階段：直線行駛", "Alignment stage 2: drive straight"),
+        "band.stage3": ("對準第 3 階段：精對準", "Alignment stage 3: fine alignment"),
+        "band.ready_inhibit": ("已就緒，但仍有不可用原因", "Ready, but a blocking condition remains"),
+        "band.degraded": ("就緒後失去必要條件", "A required condition was lost after ready"),
+        "band.fault": ("AIO NAV 故障", "AIO NAV fault"),
+        "band.maintenance": ("AIO NAV 已停止", "AIO NAV stopped"),
+        "band.state": ("狀態 {state}", "State {state}"),
+        "band.settling": ("就緒確認中（需穩定 {s} 秒）", "Confirming ready (must hold for {s} s)"),
+        "band.no_nav": ("沒有導航封包 0x04", "No navigation packets (0x04)"),
+        "band.nav_lost": ("導航封包 0x04 中斷超過 {s} 秒", "Navigation packets (0x04) stopped for over {s} s"),
+        "band.nav_backwards": ("導航時間沒有往前", "Navigation time did not move forward"),
+        "band.not_aligned": ("導航旗標顯示未對準", "Navigation flags say not aligned"),
+        "band.not_finite": ("導航資料含無效數值", "Navigation data has invalid values"),
+        "band.since": ("已持續 {age}", "For {age}"),
+        "band.total": ("累計可用", "Usable total"),
+        "mast.stop": ("有問題", "Problem"),
+        "mast.wait": ("等待", "Wait"),
+        "mast.go": ("可用", "Usable"),
+        "guide.no_status": ("開啟儀表板的 0x05", "Turn on 0x05 in the dashboard"),
+        "guide.no_status_sub": ("有 0x04，但從來沒有收到 0x05。請確認儀表板設定檔中的 status_udp.enabled: true，且 destination 指向這台電腦。",
+                                "0x04 is arriving but 0x05 never has. Check that the dashboard has status_udp.enabled: true and that its destination is this computer."),
+        "guide.status_lost": ("檢查儀表板與網路", "Check the dashboard and the network"),
+        "guide.status_lost_sub": ("0x05 已中斷 {age}。之前已經收到 {n} 包，所以設定沒有問題。請確認儀表板還在執行，以及這台電腦和裝置之間的網路沒有中斷。",
+                                  "0x05 stopped {age} ago. {n} packets arrived before that, so the settings are fine. Check that the dashboard is still running and that the network between this computer and the device is up."),
+        "age.s": ("{s:.1f} 秒", "{s:.1f} s"),
+        "age.ms": ("{m} 分 {s:02d} 秒", "{m} min {s:02d} s"),
+        "age.hm": ("{h} 小時 {m} 分", "{h} h {m} min"),
+        "station.start": ("啟動", "Start"),
+        "station.still": ("靜止", "Still"),
+        "station.straight": ("直行", "Straight"),
+        "station.fine": ("精對準", "Fine"),
+        "station.usable": ("可用", "Usable"),
+        "station.confirming": ("確認中 {x:.1f} / {y:g} 秒", "Confirming {x:.1f} / {y:g} s"),
+        "rail.no_status": ("沒有最新的狀態封包，無法判斷對準進度。", "No current status packet, so alignment progress is unknown."),
+        "rail.ready_inhibit": ("就緒，但仍有不可用原因", "Ready, but a blocking condition remains"),
+        "rail.degraded": ("曾經就緒，之後失去條件", "Was ready, then lost a condition"),
+        "rail.fault": ("AIO NAV、其輸出或管理權有問題", "Problem with AIO NAV, its output or its ownership"),
+        "rail.stopped": ("操作人員已停止，或尚未啟動", "Stopped by the operator, or not started"),
+        "rail.unknown": ("未知狀態 {state}", "Unknown state {state}"),
+        "link.none": ("沒有資料", "No data"),
+        "link.never": ("從未收到", "Never received"),
+        "link.lost": ("中斷 {age}", "Lost for {age}"),
+        "link.nav": ("{rate:.0f} Hz   {ms:.0f} ms", "{rate:.0f} Hz   {ms:.0f} ms"),
+        "link.status": ("{rate:.1f} Hz   {s:.1f} 秒前", "{rate:.1f} Hz   {s:.1f} s ago"),
+        "block.title": ("不可用原因", "Blocking conditions"),
+        "block.unknown": ("沒有最新的 0x05，無法得知", "Unknown: no current 0x05"),
+        "block.expected": ("對準流程的正常步驟，依序完成後會消失。", "These are normal alignment steps. They clear one by one."),
+        "status.state": ("狀態", "State"),
+        "status.health": ("成立條件（未成立在前）", "Conditions met (unmet first)"),
+        "status.met": ("成立 {n} / {total}", "{n} / {total} met"),
+        "status.out_of_date": ("（已過時）", " (out of date)"),
+        "track.usable": ("可用", "Usable"),
+        "track.blocked": ("不可用", "Blocked"),
+        "set.sec_everyday": ("現場常用", "Everyday"),
+        "set.sec_advanced": ("進階：接收與判斷規則", "Advanced: receiving and rules"),
+        "set.advanced_sub": ("要和裝置設定一致", "Must match the device's settings"),
     ]
 
-    static func t(_ key: String, _ lang: UILanguage, _ args: [String: String] = [:]) -> String {
-        var text = lang.pick(messages[key] ?? (key, key))
-        for (name, value) in args {
-            text = text.replacingOccurrences(of: "{\(name)}", with: value)
+    /// The message in `lang` with its `{name}` or `{name:spec}` fields filled, as Python's
+    /// str.format does for the specs i18n.py uses: `.1f`, `.0f`, `g` (Doubles) and `02d` (Ints).
+    static func t(_ key: String, _ lang: UILanguage, _ args: [String: Any] = [:]) -> String {
+        let text = lang.pick(messages[key] ?? (key, key))
+        guard !args.isEmpty, let field = try? Regex(#"\{([a-z_]+)(?::([^}]*))?\}"#) else { return text }
+        return text.replacing(field) { match in
+            let name = String(match.output[1].substring ?? "")
+            let spec = match.output[2].substring.map(String.init) ?? ""
+            guard let value = args[name] else { return String(match.output[0].substring ?? "") }
+            return format(value, spec)
         }
-        return text
+    }
+
+    static func format(_ value: Any, _ spec: String) -> String {
+        switch (value, spec) {
+        case let (d as Double, s) where s.hasSuffix("f"): String(format: "%\(s)", d)
+        case let (d as Double, "g"): String(format: "%g", d)
+        case let (i as Int, "02d"): String(format: "%02d", i)
+        case let (d as Double, ""): String(format: "%g", d)
+        default: "\(value)"
+        }
     }
 
     /// Items joined the way each language lists them.

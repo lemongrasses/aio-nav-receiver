@@ -413,13 +413,22 @@ struct VocabularyTests {
         return String(rest[..<(ends.min() ?? rest.endIndex)])
     }
 
-    static let pair = #"\(\s*"((?:[^"\\]|\\.)*)"\s*,\s*"((?:[^"\\]|\\.)*)"\s*\)"#
+    /// One Python string: adjacent literals, possibly on several lines, are one string ("a" "b" == "ab").
+    static let literal = #""(?:[^"\\]|\\.)*"(?:\s*"(?:[^"\\]|\\.)*")*"#
+    static let pair = #"\(\s*("# + literal + #")\s*,\s*("# + literal + #")\s*\)"#
+
+    /// The text of a matched `literal`: its pieces joined.
+    static func joined(_ source: String) -> String {
+        let piece = try! NSRegularExpression(pattern: #""((?:[^"\\]|\\.)*)""#)
+        return piece.matches(in: source, range: NSRange(source.startIndex..., in: source))
+            .map { String(source[Range($0.range(at: 1), in: source)!]) }.joined()
+    }
 
     /// ("zh", "en") pairs in order.
     static func pairs(_ text: String) -> [[String]] {
         let re = try! NSRegularExpression(pattern: pair)
         return re.matches(in: text, range: NSRange(text.startIndex..., in: text)).map { m in
-            (1...2).map { String(text[Range(m.range(at: $0), in: text)!]) }
+            (1...2).map { joined(String(text[Range(m.range(at: $0), in: text)!])) }
         }
     }
 
@@ -429,7 +438,7 @@ struct VocabularyTests {
         var out: [String: [String]] = [:]
         for m in re.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
             let g = (1...3).map { String(text[Range(m.range(at: $0), in: text)!]) }
-            out[g[0]] = [g[1], g[2]]
+            out[g[0]] = [joined(g[1]), joined(g[2])]
         }
         return out
     }
@@ -572,5 +581,145 @@ struct SystemTextTests {
                 #expect(Self.count(word, in: text) == inside, "\(path) uses \(word)")
             }
         }
+    }
+}
+
+// MARK: - Presentation (the desktop's tests/test_presentation.py, case for case)
+
+/// Packets as the desktop's tests/helpers.py builds them: encode_status with health 0 and
+/// nav_age unknown, and the shared nav example with its time stamp changed.
+enum Packets {
+    static func status(_ seq: UInt32, state: UInt8 = 6, action: UInt8 = 0, inhibit: UInt32 = 0,
+                       session: UInt32 = 1) -> [UInt8] {
+        var p: [UInt8] = [0x55, 0xAA, 0x05, 36, 0, 1, state, action, 0]
+        func le<T: FixedWidthInteger>(_ v: T) { p += withUnsafeBytes(of: v.littleEndian, Array.init) }
+        le(session); le(seq); le(UInt64(0)); le(UInt32(0)); le(inhibit)
+        p += [0, 0]; le(UInt16(0)); le(UInt16(0xFFFF)); le(UInt16(0))
+        p.append(p[2...].reduce(UInt8(0)) { $0 &+ $1 })
+        return p
+    }
+
+    static func nav(_ time: Double) throws -> [UInt8] {
+        var p = Array(bytes(try GateVectors.load().nav_example).dropLast())
+        let us = UInt64((time * 1e6).rounded())
+        for i in 0..<8 { p[5 + i] = UInt8(truncatingIfNeeded: us >> (8 * UInt64(i))) }
+        p.append(p[2...].reduce(UInt8(0)) { $0 &+ $1 })
+        return p
+    }
+}
+
+/// A monitor fed by hand, read the way the store reads it.
+struct Feed {
+    let engine = MonitorEngine(settings: MonitorSettings())
+
+    /// ready_monitor: 0x05 in `state` (asking for `action`) at 2 Hz and 0x04 at 100 Hz from t=0.
+    static func ready(_ seconds: Double = 3.0, state: UInt8 = 6, action: UInt8 = 0) throws -> Feed {
+        let f = Feed()
+        for i in 0..<Int(seconds * 100) {
+            let t = Double(i) / 100
+            if i % 50 == 0 {
+                f.engine.ingest(Packets.status(UInt32(i / 50 + 1), state: state, action: action), from: "a", at: t)
+            }
+            f.engine.ingest(try Packets.nav(10 + t), from: "a", at: t)
+        }
+        return f
+    }
+
+    func screen(at now: Double, statusRate: Double = 2.0) -> Screen {
+        Screen(snap: engine.snapshot(at: now), navRateHz: 100, statusRateHz: statusRate)
+    }
+}
+
+struct PresentationTests {
+    let zh = UILanguage.zhHant
+
+    @Test func bandKinds() throws {
+        #expect(Presentation.band(Feed().screen(at: 0), zh) == .init(kind: .idle, word: "不可用", headline: "還沒收到任何封包"))
+        #expect(Presentation.band(try Feed.ready().screen(at: 2.99), zh).kind == .go)
+        for (state, kind) in [("KEEP_STILL", SignalKind.wait), ("REFINING", .wait), ("BOOTING", .wait),
+                              ("DEGRADED", .stop), ("FAULT", .stop), ("MAINTENANCE", .idle)] {
+            let code = UInt8(DashboardState.names.firstIndex(of: state)!)
+            #expect(Presentation.band(try Feed.ready(state: code).screen(at: 2.99), zh).kind == kind, "\(state)")
+        }
+        #expect(Presentation.band(try Feed.ready(1.5).screen(at: 1.49), zh)
+                == .init(kind: .wait, word: "不可用", headline: "就緒確認中（需穩定 2 秒）"))
+        let stale = Presentation.band(try Feed.ready().screen(at: 3.6), zh)
+        #expect(stale.kind == .stop && stale.headline.contains("0x04 中斷"))
+        let lost = Presentation.band(try Feed.ready().screen(at: 8.0), zh)
+        #expect(lost.kind == .stop && lost.headline.contains("0x05 中斷超過 3 秒"))
+        #expect(Presentation.band(try Feed.ready().screen(at: 2.99), .en).word == "Usable")
+    }
+
+    @Test func navWithoutStatus() throws {
+        let f = Feed()
+        f.engine.ingest(try Packets.nav(1.0), from: "a", at: 0)
+        #expect(Presentation.band(f.screen(at: 0.1), zh) == .init(kind: .stop, word: "不可用", headline: "沒有狀態封包 0x05"))
+    }
+
+    @Test func rail() throws {
+        let straight = Presentation.rail(try Feed.ready(state: 4).screen(at: 2.99), zh)
+        #expect(straight.at == 2 && straight.mode == .progress)
+        let done = Presentation.rail(try Feed.ready().screen(at: 2.99), zh)
+        #expect(done.at == 4 && done.mode == .done)
+        let settling = Presentation.rail(try Feed.ready(1.5).screen(at: 1.49), zh)
+        #expect(settling.at == 4 && settling.mode == .progress && abs(settling.fraction - 0.745) < 0.01)
+        let degraded = Presentation.rail(try Feed.ready(state: 7).screen(at: 2.99), zh)
+        #expect(degraded.at == 4 && degraded.mode == .lost)
+        let fault = Presentation.rail(try Feed.ready(state: 8).screen(at: 2.99), zh)
+        #expect(fault.at == -1 && fault.mode == .fault)
+        #expect(Presentation.rail(try Feed.ready().screen(at: 8.0), zh).mode == .none)      // 0x05 timed out
+    }
+
+    @Test func linksAndAges() throws {
+        let s = try Feed.ready().screen(at: 2.99)
+        let nav = Presentation.navLink(s, zh)
+        #expect(nav.kind == .go && nav.text.contains("Hz"))
+        #expect(Presentation.statusLink(s, zh) == .init(kind: .go, text: "2.0 Hz   0.5 秒前"))
+        var gone = s
+        gone.snap.navAge = (gone.snap.navAge ?? 0) + 75
+        gone.snap.statusAge = (gone.snap.statusAge ?? 0) + 75
+        #expect(Presentation.navLink(gone, zh) == .init(kind: .stop, text: "中斷 1 分 15 秒"))
+        var noStatus = s
+        noStatus.snap.status = nil
+        #expect(Presentation.statusLink(noStatus, zh) == .init(kind: .idle, text: "沒有資料"))
+        let f = Feed()
+        f.engine.ingest(Packets.status(1), from: "a", at: 0)
+        #expect(Presentation.navLink(f.screen(at: 0.1), zh) == .init(kind: .idle, text: "沒有資料"))
+        #expect(Presentation.fmtAge(4000, zh) == "1 小時 6 分" && Presentation.fmtDur(3725) == "1:02:05")
+        #expect(Presentation.fmtAge(75, .en) == "1 min 15 s")
+    }
+
+    @Test func guideTellsNeverFromLost() throws {
+        #expect(Presentation.guide(Feed().screen(at: 0), zh) == nil)          // phone: setup help is in Settings
+        let f = Feed()
+        f.engine.ingest(try Packets.nav(1.0), from: "a", at: 0)
+        let never = f.screen(at: 0.1)
+        let g = try #require(Presentation.guide(never, zh))
+        #expect(g.kind == .plate && g.title == "開啟儀表板的 0x05")
+        #expect(Presentation.statusLink(never, zh) == .init(kind: .stop, text: "從未收到"))
+        let lost = try #require(Presentation.guide(try Feed.ready().screen(at: 8.0), zh))
+        #expect(lost.title == "檢查儀表板與網路" && lost.sub.contains("已中斷 5.5 秒") && lost.sub.contains("收到 6 包"))
+        #expect(Presentation.guide(try Feed.ready().screen(at: 2.99), zh) == .init(kind: .quiet, title: "不需動作", sub: ""))
+        #expect(Presentation.guide(try Feed.ready(state: 8, action: 4).screen(at: 2.99), zh)?.kind == .danger)
+    }
+
+    @Test func blockingConditions() throws {
+        #expect(Presentation.blocking(try Feed.ready().screen(at: 8.0), zh) == nil)       // no current 0x05: unknown
+        #expect(Presentation.blocking(try Feed.ready().screen(at: 2.99), zh) == [])
+        let still: UInt32 = 1 << 7 | 1 << 9                 // KEEP_STILL_REQUIRED, FINE_ALIGNMENT_REQUIRED
+        let f = Feed()
+        f.engine.ingest(Packets.status(1, state: 3, inhibit: still), from: "a", at: 0)
+        #expect(Presentation.blocking(f.screen(at: 0.1), zh)
+                == [.init(text: "需要保持靜止", expected: true), .init(text: "需要精對準", expected: true)])
+        f.engine.ingest(Packets.status(2, state: 7, inhibit: still | 1 << 12), from: "a", at: 0.2)
+        #expect(Presentation.blocking(f.screen(at: 0.3), zh)?.map(\.expected) == [false, false, false])
+    }
+
+    @Test func conditionsUnmetFirst() throws {
+        #expect(Presentation.conditions(Feed().screen(at: 0), zh).isEmpty)
+        let rows = Presentation.conditions(try Feed.ready().screen(at: 2.99), zh)
+        #expect(rows.count == StatusBits.health.count)
+        let met = rows.map(\.met)
+        #expect(met == met.sorted { !$0 && $1 })            // every unmet before every met
     }
 }

@@ -17,6 +17,8 @@ struct TimelineSegment: Identifiable {
     let usable: Bool
     /// Dashboard state name, or "NO_STATUS" while there is no current 0x05.
     let state: String
+    /// The signal (go / wait / stop / idle) the status band showed: the chart's signal history.
+    let kind: SignalKind
 }
 
 /// Navigation values sampled at 2 Hz while 0x04 is arriving.
@@ -34,6 +36,8 @@ struct NavSample: Identifiable {
     let sigmaEast: Double
     let sigmaDown: Double
     let sigmaHeading: Double
+    /// The verdict at this point: the track draws usable stretches solid, the rest dashed.
+    let usable: Bool
 }
 
 /// Link health sampled at 2 Hz whether or not anything arrives.
@@ -58,6 +62,10 @@ final class MonitorStore {
     private(set) var settings: MonitorSettings
     private(set) var snapshot = MonitorSnapshot()
     private(set) var receiveRateHz = 0.0
+    /// 0x05 packets per second over the last 5 s (it comes at 2 Hz, so a longer window keeps it steady).
+    private(set) var statusRateHz = 0.0
+    /// Seconds since the verdict last changed: the band's "for 0.8 s".
+    private(set) var verdictFor = 0.0
     private(set) var usableSeconds = 0.0
     private(set) var isListening = false
     private(set) var listenFailure: UDPReceiver.BindError?
@@ -72,6 +80,8 @@ final class MonitorStore {
     private var lastTick: Double?
     private var lastSampleAt = 0.0
     private var rateWindow: [(time: Double, count: Int)] = []
+    private var statusRateWindow: [(time: Double, count: Int)] = []
+    private var verdictSince: Double?
     private var nextID = 0
     private var run = 0
 
@@ -109,6 +119,7 @@ final class MonitorStore {
         isListening = false
         lastTick = nil
         rateWindow = []
+        statusRateWindow = []
         updateIdleTimer()
     }
 
@@ -176,13 +187,14 @@ final class MonitorStore {
             usableSeconds += now - lastTick
         }
         lastTick = now
+        if snap.verdict != snapshot.verdict || verdictSince == nil {
+            verdictSince = now
+        }
+        verdictFor = now - (verdictSince ?? now)
         snapshot = snap
 
-        rateWindow.append((now, snap.counts.nav))
-        rateWindow.removeAll { now - $0.time > 1.0 }
-        if let first = rateWindow.first, now - first.time > 0.05 {
-            receiveRateHz = Double(snap.counts.nav - first.count) / (now - first.time)
-        }
+        receiveRateHz = Self.rate(of: snap.counts.nav, at: now, window: 1.0, in: &rateWindow)
+        statusRateHz = Self.rate(of: snap.counts.status, at: now, window: 5.0, in: &statusRateWindow)
 
         recordTimeline(snap, at: date)
         if now - lastSampleAt >= Self.sampleInterval {
@@ -192,14 +204,30 @@ final class MonitorStore {
         }
     }
 
+    /// Everything the presentation functions need, as of the last tick.
+    var screen: Screen {
+        Screen(snap: snapshot, navRateHz: receiveRateHz, statusRateHz: statusRateHz,
+               statusTimeout: settings.statusTimeout, readyStable: settings.readyStable, navMaxAge: settings.navMaxAge)
+    }
+
+    /// Packets per second from a running count, over the last `window` seconds.
+    private static func rate(of count: Int, at now: Double, window: Double,
+                             in samples: inout [(time: Double, count: Int)]) -> Double {
+        samples.append((now, count))
+        samples.removeAll { now - $0.time > window }
+        guard let first = samples.first, now - first.time > 0.05 else { return 0 }
+        return Double(count - first.count) / (now - first.time)
+    }
+
     private func recordTimeline(_ snap: MonitorSnapshot, at date: Date) {
         let usable = snap.verdict.isUsable
         let state = snap.verdict == .noStatus ? "NO_STATUS" : (snap.status?.stateName ?? "NO_STATUS")
-        if let last = timeline.last, last.usable == usable, last.state == state {
+        let kind = Presentation.band(screen, .en).kind
+        if let last = timeline.last, last.usable == usable, last.state == state, last.kind == kind {
             timeline[timeline.count - 1].end = date
         } else {
             let start = timeline.last?.end ?? date
-            timeline.append(TimelineSegment(id: makeID(), start: start, end: date, usable: usable, state: state))
+            timeline.append(TimelineSegment(id: makeID(), start: start, end: date, usable: usable, state: state, kind: kind))
         }
     }
 
@@ -215,7 +243,8 @@ final class MonitorStore {
                                     latitude: n.latitude, longitude: n.longitude, height: Double(n.height),
                                     speed: n.groundSpeed, heading: n.heading360,
                                     sigmaNorth: Double(n.positionNorthStd), sigmaEast: Double(n.positionEastStd),
-                                    sigmaDown: Double(n.heightStd), sigmaHeading: Double(n.headingStd)))
+                                    sigmaDown: Double(n.heightStd), sigmaHeading: Double(n.headingStd),
+                                    usable: snap.verdict.isUsable))
     }
 
     private func trimHistory(before cutoff: Date) {

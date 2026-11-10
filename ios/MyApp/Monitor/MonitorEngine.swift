@@ -25,6 +25,8 @@ nonisolated struct MonitorSnapshot: Sendable {
     var statusAge: Double?
     var counts = PacketCounts()
     var lastSender: String?
+    /// How long READY without blocking conditions has held (the stability count); nil when not.
+    var readyFor: Double?
 }
 
 nonisolated final class MonitorEngine: Sendable {
@@ -65,7 +67,8 @@ nonisolated final class MonitorEngine: Sendable {
             return MonitorSnapshot(verdict: c.gate.verdict(at: now),
                                    nav: c.gate.nav, navAge: c.gate.navAt.map { now - $0 },
                                    status: c.gate.status, statusAge: c.gate.statusAt.map { now - $0 },
-                                   counts: counts, lastSender: c.lastSender)
+                                   counts: counts, lastSender: c.lastSender,
+                                   readyFor: c.gate.readySince.map { now - $0 })
         }
     }
 }

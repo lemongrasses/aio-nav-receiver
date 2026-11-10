@@ -2,6 +2,54 @@
   "sourceLanguage": "en",
   "version": "1.0",
   "strings": {
+    "%@, %lld / %lld unmet": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@　未成立 %2$lld / %3$lld"
+          }
+        }
+      }
+    },
+    "%lld changes not applied: %@": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld 項未套用：%2$@"
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld change not applied: %@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld changes not applied: %@"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld min ago": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 分鐘前"
+          }
+        }
+      }
+    },
     "0x04 age": {
       "localizations": {
         "zh-Hant": {
@@ -77,7 +125,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "1 分"
+            "value": "1 分鐘"
           }
         }
       }
@@ -87,7 +135,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "10 分"
+            "value": "10 分鐘"
           }
         }
       }
@@ -97,7 +145,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "5 分"
+            "value": "5 分鐘"
           }
         }
       }
@@ -132,12 +180,50 @@
         }
       }
     },
+    "Aligned, σ %@ m": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已對準　σ %@ m"
+          }
+        }
+      }
+    },
     "Alignment": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "對準"
+          }
+        }
+      }
+    },
+    "Alignment in progress, %lld steps to go": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "對準流程中，還有 %lld 步"
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Alignment in progress, %lld step to go"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Alignment in progress, %lld steps to go"
+                }
+              }
+            }
           }
         }
       }
@@ -162,6 +248,16 @@
         }
       }
     },
+    "Applies at once, no Apply needed": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即生效，不需套用"
+          }
+        }
+      }
+    },
     "Apply": {
       "localizations": {
         "zh-Hant": {
@@ -172,22 +268,22 @@
         }
       }
     },
-    "Blocking conditions": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "不可用原因"
-          }
-        }
-      }
-    },
     "Cannot listen": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "無法接收"
+          }
+        }
+      }
+    },
+    "Changing these never changes the verdict": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改了不會影響判斷結果"
           }
         }
       }
@@ -222,12 +318,22 @@
         }
       }
     },
-    "Conditions met": {
+    "Clears the charts, the track and the packet counts, at once.": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "成立條件"
+            "value": "清掉圖表、軌跡與封包計數，立即生效。"
+          }
+        }
+      }
+    },
+    "Collapsed": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收合"
           }
         }
       }
@@ -252,32 +358,42 @@
         }
       }
     },
-    "Defaults are 3.0 s, 2.0 s and 0.5 s, the same as the desktop app. Do not loosen them for real use.": {
+    "Decrease": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "預設為 3.0 秒、2.0 秒與 0.5 秒，與桌面版相同；實際使用時不可放寬。"
+            "value": "減少"
           }
         }
       }
     },
-    "Display": {
+    "Defaults are 3.0, 2.0 and 0.5 s, the same as the desktop app.": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示"
+            "value": "預設為 3.0、2.0、0.5 秒，與桌面版相同。"
           }
         }
       }
     },
-    "End": {
+    "Each row is one lamp; the times it was lit are filled in, so colour is not needed to read it.": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "結束"
+            "value": "每一列是一盞燈，亮著的時段畫成色塊，不用分辨顏色也看得出來。"
+          }
+        }
+      }
+    },
+    "Expanded": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已展開"
           }
         }
       }
@@ -362,6 +478,16 @@
         }
       }
     },
+    "Increase": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "增加"
+          }
+        }
+      }
+    },
     "Invalid": {
       "localizations": {
         "zh-Hant": {
@@ -378,16 +504,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "保持螢幕開啟"
-          }
-        }
-      }
-    },
-    "Lane": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "列"
           }
         }
       }
@@ -428,6 +544,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "上限"
+          }
+        }
+      }
+    },
+    "Limit %@ ms": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上限 %@ ms"
           }
         }
       }
@@ -512,16 +638,6 @@
         }
       }
     },
-    "No": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "否"
-          }
-        }
-      }
-    },
     "No 0x04 navigation packets yet.": {
       "localizations": {
         "zh-Hant": {
@@ -552,6 +668,16 @@
         }
       }
     },
+    "No problems": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有異常"
+          }
+        }
+      }
+    },
     "No valid 0x05 status packet.": {
       "localizations": {
         "zh-Hant": {
@@ -562,12 +688,52 @@
         }
       }
     },
+    "Not aligned, σ %@ m": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未對準　σ %@ m"
+          }
+        }
+      }
+    },
     "Not connected to a network.": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "未連上網路。"
+          }
+        }
+      }
+    },
+    "Now": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在"
+          }
+        }
+      }
+    },
+    "Off": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關閉"
+          }
+        }
+      }
+    },
+    "On": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟"
           }
         }
       }
@@ -592,12 +758,32 @@
         }
       }
     },
+    "Out of date, last: %@": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已過時　最後一包：%@"
+          }
+        }
+      }
+    },
     "Out of order": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "順序錯亂"
+          }
+        }
+      }
+    },
+    "Packets": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封包"
           }
         }
       }
@@ -618,6 +804,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "位置 σ 北 / 東 / 下"
+          }
+        }
+      }
+    },
+    "Puts this page's fields back to the defaults. They take effect when you tap Apply.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把這頁的欄位改回預設；按「套用」才會生效。"
           }
         }
       }
@@ -682,12 +878,12 @@
         }
       }
     },
-    "Rules": {
+    "Rules: do not loosen them for real use": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "判斷規則"
+            "value": "判斷規則：實際使用時不可放寬"
           }
         }
       }
@@ -722,16 +918,6 @@
         }
       }
     },
-    "Series": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "數列"
-          }
-        }
-      }
-    },
     "Session": {
       "localizations": {
         "zh-Hant": {
@@ -752,22 +938,62 @@
         }
       }
     },
+    "Signal history": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "號誌歷程"
+          }
+        }
+      }
+    },
+    "Signal: green, usable": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "號誌：綠燈，可用"
+          }
+        }
+      }
+    },
+    "Signal: off, no data": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "號誌：未亮，沒有資料"
+          }
+        }
+      }
+    },
+    "Signal: red, problem": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "號誌：紅燈，有問題"
+          }
+        }
+      }
+    },
+    "Signal: yellow, wait": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "號誌：黃燈，等待"
+          }
+        }
+      }
+    },
     "Speed": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "速率"
-          }
-        }
-      }
-    },
-    "Start": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "開始"
           }
         }
       }
@@ -818,16 +1044,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "狀態延遲"
-          }
-        }
-      }
-    },
-    "Status timeline": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態時間軸"
           }
         }
       }
@@ -902,42 +1118,12 @@
         }
       }
     },
-    "Value": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "值"
-          }
-        }
-      }
-    },
     "Version": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "版本"
-          }
-        }
-      }
-    },
-    "Window": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "時間範圍"
-          }
-        }
-      }
-    },
-    "Yes": {
-      "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "是"
           }
         }
       }
@@ -958,6 +1144,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "ms"
+          }
+        }
+      }
+    },
+    "● No": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "● 否"
+          }
+        }
+      }
+    },
+    "● Yes": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "● 是"
           }
         }
       }
